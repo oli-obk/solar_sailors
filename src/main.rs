@@ -11,6 +11,9 @@ async fn main() {
             )
         })
         .collect();
+    let mut left_rope = 50.0;
+    let mut right_rope = 50.0;
+    let sail_width = 100.0;
     loop {
         clear_background(BLACK);
 
@@ -18,9 +21,46 @@ async fn main() {
             draw_star(Vec2::new(x, y), 5.0);
         }
 
-        draw_line(40.0, 40.0, 100.0, 200.0, 15.0, BLUE);
-        draw_rectangle(screen_width() / 2.0 - 60.0, 100.0, 120.0, 60.0, GREEN);
-        draw_circle(screen_width() - 30.0, screen_height() - 30.0, 15.0, YELLOW);
+        if is_key_down(KeyCode::W) {
+            left_rope += 1.0;
+            right_rope += 1.0;
+        } else if is_key_down(KeyCode::S) {
+            left_rope -= 1.0;
+            right_rope -= 1.0;
+        } else if is_key_down(KeyCode::A) {
+            left_rope += 1.0;
+            right_rope -= 1.0;
+        } else if is_key_down(KeyCode::D) {
+            left_rope -= 1.0;
+            right_rope += 1.0;
+        }
+
+        let left_x = screen_width() / 2.0 - sail_width / 2.0;
+        let left_y = screen_height() / 2.0 - left_rope;
+        let right_x = screen_width() / 2.0 + sail_width / 2.0;
+        let right_y = screen_height() / 2.0 - right_rope;
+        // Sail
+        draw_line(left_x, left_y, right_x, right_y, 1.0, YELLOW);
+        // Ropes
+        draw_line(
+            screen_width() / 2.0,
+            screen_height() / 2.0,
+            left_x,
+            left_y,
+            1.0,
+            GRAY,
+        );
+        draw_line(
+            screen_width() / 2.0,
+            screen_height() / 2.0,
+            right_x,
+            right_y,
+            1.0,
+            GRAY,
+        );
+
+        // Spaceship
+        draw_circle(screen_width() / 2.0, screen_height() / 2.0, 20.0, BLUE);
 
         draw_text("IT WORKS!", 20.0, 20.0, 30.0, DARKGRAY);
 

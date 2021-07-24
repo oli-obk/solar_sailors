@@ -13,7 +13,12 @@ async fn main() {
         .collect();
     let mid_x = screen_width() / 2.0;
     let mid_y = screen_height() / 2.0;
-    let mut sail = Sail::new(Vec2::new(mid_x, mid_y), 100.0, 100.0, 50.0);
+    let sail = Sail::new(Vec2::new(mid_x, mid_y), 100.0, 100.0, 50.0);
+    let mut ship = SpaceShip {
+        sail,
+        len: 50.0,
+        width: 20.0,
+    };
     loop {
         clear_background(BLACK);
 
@@ -21,24 +26,37 @@ async fn main() {
             draw_star(Vec2::new(x, y), 5.0);
         }
 
-        sail.update();
-        sail.draw();
-
-        // Spaceship
-        let mid = Vec2::new(mid_x, mid_y);
-        let len = 50.0;
-        let width = 20.0;
-        draw_triangle(
-            mid,
-            mid + Vec2::new(10.0, width / 2.0),
-            mid + Vec2::new(-10.0, width / 2.0),
-            BLUE,
-        );
-        draw_rectangle(mid_x - width / 2.0, mid_y + 10.0, width, len, BLUE);
+        ship.update();
+        ship.draw();
 
         draw_text("IT WORKS!", 20.0, 20.0, 30.0, DARKGRAY);
 
         next_frame().await
+    }
+}
+
+struct SpaceShip {
+    sail: Sail,
+    width: f32,
+    len: f32,
+}
+
+impl SpaceShip {
+    fn update(&mut self) {
+        self.sail.update();
+    }
+    fn draw(&self) {
+        self.sail.draw();
+
+        // Spaceship
+        let mid = self.sail.anchor;
+        draw_triangle(
+            mid,
+            mid + Vec2::new(10.0, self.width / 2.0),
+            mid + Vec2::new(-10.0, self.width / 2.0),
+            BLUE,
+        );
+        draw_rectangle(mid.x - self.width / 2.0, mid.y + 10.0, self.width, self.len, BLUE);
     }
 }
 

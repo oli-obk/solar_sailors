@@ -29,13 +29,15 @@ async fn main() {
             } else {
                 sail_width += 1.0;
             }
-        } else if is_key_down(KeyCode::A) {
+        }
+        if is_key_down(KeyCode::A) {
             if is_key_down(KeyCode::LeftShift) {
                 left_rope -= 1.0;
             } else {
                 left_rope += 1.0;
             }
-        } else if is_key_down(KeyCode::D) {
+        }
+        if is_key_down(KeyCode::D) {
             if is_key_down(KeyCode::LeftShift) {
                 right_rope -= 1.0;
             } else {

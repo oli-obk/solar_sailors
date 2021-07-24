@@ -14,6 +14,8 @@ async fn main() {
     let mut left_rope = 50.0;
     let mut right_rope = 50.0;
     let sail_width = 100.0;
+    let mid_x = screen_width() / 2.0;
+    let mid_y = screen_height() / 2.0;
     loop {
         clear_background(BLACK);
 
@@ -35,32 +37,18 @@ async fn main() {
             right_rope += 1.0;
         }
 
-        let left_x = screen_width() / 2.0 - sail_width / 2.0;
-        let left_y = screen_height() / 2.0 - left_rope;
-        let right_x = screen_width() / 2.0 + sail_width / 2.0;
-        let right_y = screen_height() / 2.0 - right_rope;
+        let left_x = mid_x - sail_width / 2.0;
+        let left_y = mid_y - left_rope;
+        let right_x = mid_x + sail_width / 2.0;
+        let right_y = mid_y - right_rope;
         // Sail
         draw_line(left_x, left_y, right_x, right_y, 1.0, YELLOW);
         // Ropes
-        draw_line(
-            screen_width() / 2.0,
-            screen_height() / 2.0,
-            left_x,
-            left_y,
-            1.0,
-            GRAY,
-        );
-        draw_line(
-            screen_width() / 2.0,
-            screen_height() / 2.0,
-            right_x,
-            right_y,
-            1.0,
-            GRAY,
-        );
+        draw_line(mid_x, mid_y, left_x, left_y, 1.0, GRAY);
+        draw_line(mid_x, mid_y, right_x, right_y, 1.0, GRAY);
 
         // Spaceship
-        draw_circle(screen_width() / 2.0, screen_height() / 2.0, 20.0, BLUE);
+        draw_circle(mid_x, mid_y, 20.0, BLUE);
 
         draw_text("IT WORKS!", 20.0, 20.0, 30.0, DARKGRAY);
 

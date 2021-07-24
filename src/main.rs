@@ -11,9 +11,9 @@ async fn main() {
             )
         })
         .collect();
-    let mut left_rope = 50.0;
-    let mut right_rope = 50.0;
-    let sail_width = 100.0;
+    let mut left_rope = 0.0;
+    let mut right_rope = 0.0;
+    let mut sail_width = 0.0;
     let mid_x = screen_width() / 2.0;
     let mid_y = screen_height() / 2.0;
     loop {
@@ -24,26 +24,38 @@ async fn main() {
         }
 
         if is_key_down(KeyCode::W) {
-            left_rope += 1.0;
-            right_rope += 1.0;
-        } else if is_key_down(KeyCode::S) {
-            left_rope -= 1.0;
-            right_rope -= 1.0;
+            if is_key_down(KeyCode::LeftShift) {
+                sail_width -= 1.0;
+            } else {
+                sail_width += 1.0;
+            }
         } else if is_key_down(KeyCode::A) {
-            left_rope += 1.0;
+            if is_key_down(KeyCode::LeftShift) {
+                left_rope -= 1.0;
+            } else {
+                left_rope += 1.0;
+            }
         } else if is_key_down(KeyCode::D) {
-            right_rope += 1.0;
+            if is_key_down(KeyCode::LeftShift) {
+                right_rope -= 1.0;
+            } else {
+                right_rope += 1.0;
+            }
         }
 
-        let left_x = mid_x - sail_width / 2.0;
-        let left_y = mid_y - left_rope;
-        let right_x = mid_x + sail_width / 2.0;
-        let right_y = mid_y - right_rope;
+        let (left_x, left_y, right_x, right_y) = rope_positions(left_rope, right_rope, sail_width);
         // Sail
-        draw_line(left_x, left_y, right_x, right_y, 1.0, YELLOW);
+        draw_line(
+            mid_x + left_x,
+            mid_y + left_y,
+            mid_x + right_x,
+            mid_y + right_y,
+            1.0,
+            YELLOW,
+        );
         // Ropes
-        draw_line(mid_x, mid_y, left_x, left_y, 1.0, GRAY);
-        draw_line(mid_x, mid_y, right_x, right_y, 1.0, GRAY);
+        draw_line(mid_x, mid_y, mid_x + left_x, mid_y + left_y, 1.0, GRAY);
+        draw_line(mid_x, mid_y, mid_x + right_x, mid_y + right_y, 1.0, GRAY);
 
         // Spaceship
         draw_circle(mid_x, mid_y, 20.0, BLUE);
@@ -60,4 +72,25 @@ fn draw_star(pos: Vec2, size: f32) {
     let left = Vec2::new(-x, y);
     let right = Vec2::new(x, y);
     draw_triangle(pos, pos + left, pos + right, WHITE)
+}
+
+/// Compute the position of the sail corners
+fn rope_positions(left: f32, right: f32, sail: f32) -> (f32, f32, f32, f32) {
+    let angle = rope_angle(left, right, sail);
+    let half_angle = angle / 2.0;
+    let x = half_angle.sin();
+    let y = half_angle.cos();
+    (-x * left, -y * left, x * right, -y * right)
+}
+
+/// Find the angle between "a" and "b" for a triangle with the given three side lengths.
+fn rope_angle(a: f32, b: f32, c: f32) -> f32 {
+    // http://mathcentral.uregina.ca/QQ/database/QQ.09.07/h/lucy1.html
+    // c^2 = a^2 + b^2 - 2ab cos(C)
+    // 2ab cos(C) = a^2 + b^2 - c^2
+    // cos(C) = (a^2 + b^2 - c^2)/(2ab)
+    let squares = a * a + b * b - c * c;
+    let divisor = 2.0 * a * b;
+    let cos_c = squares / divisor;
+    cos_c.acos()
 }

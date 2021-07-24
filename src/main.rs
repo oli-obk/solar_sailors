@@ -31,9 +31,7 @@ async fn main() {
             right_rope -= 1.0;
         } else if is_key_down(KeyCode::A) {
             left_rope += 1.0;
-            right_rope -= 1.0;
         } else if is_key_down(KeyCode::D) {
-            left_rope -= 1.0;
             right_rope += 1.0;
         }
 

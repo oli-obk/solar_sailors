@@ -11,11 +11,9 @@ async fn main() {
             )
         })
         .collect();
-    let mut left_rope = ButtonControlledRange::new(100.0, KeyCode::A);
-    let mut right_rope = ButtonControlledRange::new(100.0, KeyCode::D);
-    let mut sail_width = ButtonControlledRange::new(50.0, KeyCode::W);
     let mid_x = screen_width() / 2.0;
     let mid_y = screen_height() / 2.0;
+    let mut sail = Sail::new(Vec2::new(mid_x, mid_y), 100.0, 100.0, 50.0);
     loop {
         clear_background(BLACK);
 
@@ -23,12 +21,9 @@ async fn main() {
             draw_star(Vec2::new(x, y), 5.0);
         }
 
-        left_rope.update();
-        right_rope.update();
-        sail_width.update();
+        sail.update();
 
-        let (left_x, left_y, right_x, right_y) =
-            rope_positions(left_rope.value, right_rope.value, sail_width.value);
+        let (left_x, left_y, right_x, right_y) = sail.rope_positions();
         // Sail
         draw_line(
             mid_x + left_x,
@@ -57,6 +52,47 @@ async fn main() {
         draw_text("IT WORKS!", 20.0, 20.0, 30.0, DARKGRAY);
 
         next_frame().await
+    }
+}
+
+struct Sail {
+    anchor: Vec2,
+    left_rope: ButtonControlledRange,
+    right_rope: ButtonControlledRange,
+    sail_width: ButtonControlledRange,
+}
+
+impl Sail {
+    fn new(anchor: Vec2, left_rope: f32, right_rope: f32, sail_width: f32) -> Self {
+        Self {
+            anchor,
+            left_rope: ButtonControlledRange::new(left_rope, KeyCode::A),
+            right_rope: ButtonControlledRange::new(right_rope, KeyCode::D),
+            sail_width: ButtonControlledRange::new(sail_width, KeyCode::W),
+        }
+    }
+    fn update(&mut self) {
+        self.left_rope.update();
+        self.right_rope.update();
+        self.sail_width.update();
+    }
+
+    /// Compute the position of the sail corners
+    fn rope_positions(&self) -> (f32, f32, f32, f32) {
+        let angle = rope_angle(
+            self.left_rope.value,
+            self.right_rope.value,
+            self.sail_width.value,
+        );
+        let half_angle = angle / 2.0;
+        let x = half_angle.sin();
+        let y = half_angle.cos();
+        (
+            -x * self.left_rope.value,
+            -y * self.left_rope.value,
+            x * self.right_rope.value,
+            -y * self.right_rope.value,
+        )
     }
 }
 
@@ -89,15 +125,6 @@ fn draw_star(pos: Vec2, size: f32) {
     let left = Vec2::new(-x, y);
     let right = Vec2::new(x, y);
     draw_triangle(pos, pos + left, pos + right, WHITE)
-}
-
-/// Compute the position of the sail corners
-fn rope_positions(left: f32, right: f32, sail: f32) -> (f32, f32, f32, f32) {
-    let angle = rope_angle(left, right, sail);
-    let half_angle = angle / 2.0;
-    let x = half_angle.sin();
-    let y = half_angle.cos();
-    (-x * left, -y * left, x * right, -y * right)
 }
 
 /// Find the angle between "a" and "b" for a triangle with the given three side lengths.

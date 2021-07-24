@@ -11,9 +11,9 @@ async fn main() {
             )
         })
         .collect();
-    let mut left_rope = 0.0;
-    let mut right_rope = 0.0;
-    let mut sail_width = 0.0;
+    let mut left_rope = 100.0;
+    let mut right_rope = 100.0;
+    let mut sail_width = 50.0;
     let mid_x = screen_width() / 2.0;
     let mid_y = screen_height() / 2.0;
     loop {

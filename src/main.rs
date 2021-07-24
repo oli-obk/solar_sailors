@@ -22,20 +22,7 @@ async fn main() {
         }
 
         sail.update();
-
-        let (left_x, left_y, right_x, right_y) = sail.rope_positions();
-        // Sail
-        draw_line(
-            left_x,
-            left_y,
-            right_x,
-            right_y,
-            1.0,
-            YELLOW,
-        );
-        // Ropes
-        draw_line(mid_x, mid_y, left_x, left_y, 1.0, GRAY);
-        draw_line(mid_x, mid_y, right_x, right_y, 1.0, GRAY);
+        sail.draw();
 
         // Spaceship
         let mid = Vec2::new(mid_x, mid_y);
@@ -75,6 +62,14 @@ impl Sail {
         self.left_rope.update();
         self.right_rope.update();
         self.sail_width.update();
+    }
+    fn draw(&self) {
+        let (left_x, left_y, right_x, right_y) = self.rope_positions();
+        // Sail
+        draw_line(left_x, left_y, right_x, right_y, 1.0, YELLOW);
+        // Ropes
+        draw_line(self.anchor.x, self.anchor.y, left_x, left_y, 1.0, GRAY);
+        draw_line(self.anchor.x, self.anchor.y, right_x, right_y, 1.0, GRAY);
     }
 
     /// Compute the position of the sail corners

@@ -4,7 +4,12 @@ use macroquad::rand::RandomRange;
 #[macroquad::main("BasicShapes")]
 async fn main() {
     let stars: Vec<_> = (0..100)
-        .map(|_| (f32::gen_range(0.0, 800.0), f32::gen_range(0.0, 600.0)))
+        .map(|_| {
+            (
+                f32::gen_range(0.0, screen_width()),
+                f32::gen_range(0.0, screen_height()),
+            )
+        })
         .collect();
     loop {
         clear_background(BLACK);

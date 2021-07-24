@@ -26,16 +26,16 @@ async fn main() {
         let (left_x, left_y, right_x, right_y) = sail.rope_positions();
         // Sail
         draw_line(
-            mid_x + left_x,
-            mid_y + left_y,
-            mid_x + right_x,
-            mid_y + right_y,
+            left_x,
+            left_y,
+            right_x,
+            right_y,
             1.0,
             YELLOW,
         );
         // Ropes
-        draw_line(mid_x, mid_y, mid_x + left_x, mid_y + left_y, 1.0, GRAY);
-        draw_line(mid_x, mid_y, mid_x + right_x, mid_y + right_y, 1.0, GRAY);
+        draw_line(mid_x, mid_y, left_x, left_y, 1.0, GRAY);
+        draw_line(mid_x, mid_y, right_x, right_y, 1.0, GRAY);
 
         // Spaceship
         let mid = Vec2::new(mid_x, mid_y);
@@ -88,10 +88,10 @@ impl Sail {
         let x = half_angle.sin();
         let y = half_angle.cos();
         (
-            -x * self.left_rope.value,
-            -y * self.left_rope.value,
-            x * self.right_rope.value,
-            -y * self.right_rope.value,
+            -x * self.left_rope.value + self.anchor.x,
+            -y * self.left_rope.value + self.anchor.y,
+            x * self.right_rope.value + self.anchor.x,
+            -y * self.right_rope.value + self.anchor.y,
         )
     }
 }

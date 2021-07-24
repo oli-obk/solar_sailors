@@ -11,9 +11,9 @@ async fn main() {
             )
         })
         .collect();
-    let mut left_rope = 100.0;
-    let mut right_rope = 100.0;
-    let mut sail_width = 50.0;
+    let mut left_rope = ButtonControlledRange::new(100.0, KeyCode::A);
+    let mut right_rope = ButtonControlledRange::new(100.0, KeyCode::D);
+    let mut sail_width = ButtonControlledRange::new(50.0, KeyCode::W);
     let mid_x = screen_width() / 2.0;
     let mid_y = screen_height() / 2.0;
     loop {
@@ -23,29 +23,12 @@ async fn main() {
             draw_star(Vec2::new(x, y), 5.0);
         }
 
-        if is_key_down(KeyCode::W) {
-            if is_key_down(KeyCode::LeftShift) {
-                sail_width -= 1.0;
-            } else {
-                sail_width += 1.0;
-            }
-        }
-        if is_key_down(KeyCode::A) {
-            if is_key_down(KeyCode::LeftShift) {
-                left_rope -= 1.0;
-            } else {
-                left_rope += 1.0;
-            }
-        }
-        if is_key_down(KeyCode::D) {
-            if is_key_down(KeyCode::LeftShift) {
-                right_rope -= 1.0;
-            } else {
-                right_rope += 1.0;
-            }
-        }
+        left_rope.update();
+        right_rope.update();
+        sail_width.update();
 
-        let (left_x, left_y, right_x, right_y) = rope_positions(left_rope, right_rope, sail_width);
+        let (left_x, left_y, right_x, right_y) =
+            rope_positions(left_rope.value, right_rope.value, sail_width.value);
         // Sail
         draw_line(
             mid_x + left_x,
@@ -74,6 +57,29 @@ async fn main() {
         draw_text("IT WORKS!", 20.0, 20.0, 30.0, DARKGRAY);
 
         next_frame().await
+    }
+}
+
+struct ButtonControlledRange {
+    value: f32,
+    keycode: KeyCode,
+}
+
+impl ButtonControlledRange {
+    fn new(start: f32, keycode: KeyCode) -> Self {
+        Self {
+            value: start,
+            keycode,
+        }
+    }
+    fn update(&mut self) {
+        if is_key_down(self.keycode) {
+            if is_key_down(KeyCode::LeftShift) {
+                self.value -= 1.0;
+            } else {
+                self.value += 1.0;
+            }
+        }
     }
 }
 

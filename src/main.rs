@@ -60,7 +60,16 @@ async fn main() {
         draw_line(mid_x, mid_y, mid_x + right_x, mid_y + right_y, 1.0, GRAY);
 
         // Spaceship
-        draw_circle(mid_x, mid_y, 20.0, BLUE);
+        let mid = Vec2::new(mid_x, mid_y);
+        let len = 50.0;
+        let width = 20.0;
+        draw_triangle(
+            mid,
+            mid + Vec2::new(10.0, width / 2.0),
+            mid + Vec2::new(-10.0, width / 2.0),
+            BLUE,
+        );
+        draw_rectangle(mid_x - width / 2.0, mid_y + 10.0, width, len, BLUE);
 
         draw_text("IT WORKS!", 20.0, 20.0, 30.0, DARKGRAY);
 

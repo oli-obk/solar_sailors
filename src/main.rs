@@ -1,5 +1,8 @@
+use controlled::ButtonControlledRange;
 use macroquad::prelude::*;
 use macroquad::rand::RandomRange;
+
+mod controlled;
 
 #[macroquad::main("BasicShapes")]
 async fn main() {
@@ -127,29 +130,6 @@ impl Sail {
             x * self.right_rope.value + anchor.x,
             -y * self.right_rope.value + anchor.y,
         )
-    }
-}
-
-struct ButtonControlledRange {
-    value: f32,
-    keycode: KeyCode,
-}
-
-impl ButtonControlledRange {
-    fn new(start: f32, keycode: KeyCode) -> Self {
-        Self {
-            value: start,
-            keycode,
-        }
-    }
-    fn update(&mut self) {
-        if is_key_down(self.keycode) {
-            if is_key_down(KeyCode::LeftShift) {
-                self.value -= 1.0;
-            } else {
-                self.value += 1.0;
-            }
-        }
     }
 }
 

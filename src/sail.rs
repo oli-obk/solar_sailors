@@ -1,15 +1,18 @@
 use macroquad::prelude::*;
+use rapier2d::prelude::*;
 
-use crate::controlled::ButtonControlledRange;
+use crate::{controlled::ButtonControlledRange, physics::Physics};
 
 pub(crate) struct Sail {
     left_rope: ButtonControlledRange,
     right_rope: ButtonControlledRange,
     sail_width: ButtonControlledRange,
+    sail_body: RigidBodyHandle,
 }
 
 impl Sail {
     pub(crate) fn new(
+        physics: &mut Physics,
         left_rope: f32,
         right_rope: f32,
         sail_width: f32,
@@ -17,7 +20,12 @@ impl Sail {
     ) -> Self {
         let mut sail_width = ButtonControlledRange::new(sail_width, KeyCode::W);
         sail_width.min = min_sail_width;
+
+        let sail_body = RigidBodyBuilder::new_dynamic().can_sleep(false).additional_mass(10.0).build();
+        let sail_body = physics.add(sail_body);
+
         Self {
+            sail_body,
             left_rope: ButtonControlledRange::new(left_rope, KeyCode::A),
             right_rope: ButtonControlledRange::new(right_rope, KeyCode::D),
             sail_width,
@@ -28,13 +36,19 @@ impl Sail {
         self.right_rope.update();
         self.sail_width.update();
     }
-    pub(crate) fn draw(&self, anchor: Vec2) {
+    pub(crate) fn draw(&self, anchor: Vec2, physics: &Physics) {
         let (left_x, left_y, right_x, right_y) = self.rope_positions(anchor);
         // Sail
         draw_line(left_x, left_y, right_x, right_y, 1.0, YELLOW);
         // Ropes
         draw_line(anchor.x, anchor.y, left_x, left_y, 1.0, GRAY);
         draw_line(anchor.x, anchor.y, right_x, right_y, 1.0, GRAY);
+
+        let sail_body = physics.get(self.sail_body);
+        let pos = *sail_body.translation();
+        let x = pos[0];
+        let y = pos[1];
+        draw_circle(x, y, 20.0, PINK);
     }
 
     /// Compute the position of the sail corners

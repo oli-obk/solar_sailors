@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 
-use crate::sail::Sail;
+use crate::{physics::Physics, sail::Sail};
 
 pub(crate) struct SpaceShip {
     pub(crate) pos: Vec2,
@@ -13,8 +13,8 @@ impl SpaceShip {
     pub(crate) fn update(&mut self) {
         self.sail.update();
     }
-    pub(crate) fn draw(&self) {
-        self.sail.draw(self.pos);
+    pub(crate) fn draw(&self, physics: &Physics) {
+        self.sail.draw(self.pos, physics);
 
         // Spaceship
         let mid = self.pos;

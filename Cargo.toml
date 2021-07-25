@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 macroquad = "0.3"
+rapier2d = "0.10"

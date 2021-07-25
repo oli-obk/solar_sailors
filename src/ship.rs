@@ -10,8 +10,8 @@ pub(crate) struct SpaceShip {
 }
 
 impl SpaceShip {
-    pub(crate) fn update(&mut self) {
-        self.sail.update();
+    pub(crate) fn update(&mut self, physics: &mut Physics) {
+        self.sail.update(physics);
     }
     pub(crate) fn draw(&self, physics: &Physics) {
         self.sail.draw(self.pos, physics);

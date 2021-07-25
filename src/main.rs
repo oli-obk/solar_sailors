@@ -28,7 +28,7 @@ async fn main() {
     loop {
         // Logic
 
-        ship.update();
+        ship.update(&mut physics);
 
         physics.update();
 

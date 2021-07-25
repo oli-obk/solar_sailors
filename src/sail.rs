@@ -9,6 +9,7 @@ pub(crate) struct Sail {
     sail_width: ButtonControlledRange,
     sail_left: RigidBodyHandle,
     sail_right: RigidBodyHandle,
+    sail_motor: JointHandle,
 }
 
 impl Sail {
@@ -35,8 +36,7 @@ impl Sail {
         let mut joint = PrismaticJoint::new(point![0.0, 0.0], x, point![0.0, 0.0], x);
         joint.limits = [min_sail_width, sail_width];
         joint.limits_enabled = true;
-        joint.limits_impulse = 0.00001;
-        physics.add_joint(joint, sail_left, sail_right);
+        let sail_motor = physics.add_joint(joint, sail_left, sail_right);
 
         let mut sail_width = ButtonControlledRange::new(sail_width, KeyCode::W);
         sail_width.min = min_sail_width;
@@ -47,12 +47,18 @@ impl Sail {
             left_rope: ButtonControlledRange::new(left_rope, KeyCode::A),
             right_rope: ButtonControlledRange::new(right_rope, KeyCode::D),
             sail_width,
+            sail_motor,
         }
     }
-    pub(crate) fn update(&mut self) {
+    pub(crate) fn update(&mut self, physics: &mut Physics) {
         self.left_rope.update();
         self.right_rope.update();
         self.sail_width.update();
+        if let JointParams::PrismaticJoint(joint) = &mut physics[self.sail_motor].params {
+            joint.configure_motor_position(self.sail_width.value, 0.01, 0.99);
+        } else {
+            unreachable!()
+        }
     }
     pub(crate) fn draw(&self, anchor: Vec2, physics: &Physics) {
         let (left_x, left_y, right_x, right_y) = self.rope_positions(anchor);
@@ -62,16 +68,13 @@ impl Sail {
         draw_line(anchor.x, anchor.y, left_x, left_y, 1.0, GRAY);
         draw_line(anchor.x, anchor.y, right_x, right_y, 1.0, GRAY);
 
-        let sail_body = physics.get(self.sail_left);
-        let pos = *sail_body.translation();
-        let x = pos[0];
-        let y = pos[1];
-        draw_circle(x, y, 20.0, PINK);
-        let sail_body = physics.get(self.sail_right);
-        let pos = *sail_body.translation();
-        let x = pos[0];
-        let y = pos[1];
-        draw_circle(x, y, 20.0, PINK);
+        let pos = physics[self.sail_left].translation();
+        let x1 = pos[0];
+        let y1 = pos[1];
+        let pos = physics[self.sail_right].translation();
+        let x2 = pos[0];
+        let y2 = pos[1];
+        draw_line(x1, y1, x2, y2, 1.0, GOLD);
     }
 
     /// Compute the position of the sail corners

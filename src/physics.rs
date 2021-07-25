@@ -1,3 +1,5 @@
+use std::ops::{Index, IndexMut};
+
 use rapier2d::prelude::PhysicsPipeline;
 
 use rapier2d::prelude::*;
@@ -13,6 +15,38 @@ pub struct Physics {
     colliders: ColliderSet,
     joints: JointSet,
     ccd_solver: CCDSolver,
+}
+
+impl Index<JointHandle> for Physics {
+    type Output = Joint;
+
+    #[track_caller]
+    fn index(&self, handle: JointHandle) -> &Self::Output {
+        self.joints.get(handle).unwrap()
+    }
+}
+
+impl IndexMut<JointHandle> for Physics {
+    #[track_caller]
+    fn index_mut(&mut self, handle: JointHandle) -> &mut Self::Output {
+        self.joints.get_mut(handle).unwrap()
+    }
+}
+
+impl Index<RigidBodyHandle> for Physics {
+    type Output = RigidBody;
+
+    #[track_caller]
+    fn index(&self, handle: RigidBodyHandle) -> &Self::Output {
+        self.bodies.get(handle).unwrap()
+    }
+}
+
+impl IndexMut<RigidBodyHandle> for Physics {
+    #[track_caller]
+    fn index_mut(&mut self, handle: RigidBodyHandle) -> &mut Self::Output {
+        self.bodies.get_mut(handle).unwrap()
+    }
 }
 
 impl Physics {
@@ -42,10 +76,6 @@ impl Physics {
         body2: RigidBodyHandle,
     ) -> JointHandle {
         self.joints.insert(body1, body2, joint)
-    }
-
-    pub fn get(&self, rb: RigidBodyHandle) -> &RigidBody {
-        &self.bodies[rb]
     }
 
     pub fn update(&mut self) {

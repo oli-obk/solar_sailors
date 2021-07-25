@@ -1,24 +1,28 @@
 use macroquad::prelude::*;
 
 pub(crate) struct ButtonControlledRange {
+    pub min: f32,
     pub value: f32,
+    pub max: f32,
     keycode: KeyCode,
 }
 
 impl ButtonControlledRange {
-    pub fn new(start: f32, keycode: KeyCode) -> Self {
+    pub fn new(max: f32, keycode: KeyCode) -> Self {
         Self {
-            value: start,
+            value: max,
             keycode,
+            min: 0.0,
+            max,
         }
     }
 
     pub fn update(&mut self) {
         if is_key_down(self.keycode) {
             if is_key_down(KeyCode::LeftShift) {
-                self.value -= 1.0;
+                self.value = self.min.max(self.value - 1.0);
             } else {
-                self.value += 1.0;
+                self.value = self.max.min(self.value + 1.0);
             }
         }
     }

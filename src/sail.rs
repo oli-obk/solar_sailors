@@ -9,11 +9,18 @@ pub(crate) struct Sail {
 }
 
 impl Sail {
-    pub(crate) fn new(left_rope: f32, right_rope: f32, sail_width: f32) -> Self {
+    pub(crate) fn new(
+        left_rope: f32,
+        right_rope: f32,
+        sail_width: f32,
+        min_sail_width: f32,
+    ) -> Self {
+        let mut sail_width = ButtonControlledRange::new(sail_width, KeyCode::W);
+        sail_width.min = min_sail_width;
         Self {
             left_rope: ButtonControlledRange::new(left_rope, KeyCode::A),
             right_rope: ButtonControlledRange::new(right_rope, KeyCode::D),
-            sail_width: ButtonControlledRange::new(sail_width, KeyCode::W),
+            sail_width,
         }
     }
     pub(crate) fn update(&mut self) {

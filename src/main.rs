@@ -5,15 +5,15 @@ use stars::Stars;
 
 mod controlled;
 mod sail;
-mod stars;
 mod ship;
+mod stars;
 
 #[macroquad::main("BasicShapes")]
 async fn main() {
     let stars = Stars::new(100);
     let mid_x = screen_width() / 2.0;
     let mid_y = screen_height() / 2.0;
-    let sail = Sail::new(100.0, 100.0, 50.0);
+    let sail = Sail::new(100.0, 100.0, 50.0, 10.0);
     let mut ship = SpaceShip {
         sail,
         len: 50.0,

@@ -3,14 +3,7 @@ use macroquad::rand::RandomRange;
 
 #[macroquad::main("BasicShapes")]
 async fn main() {
-    let stars: Vec<_> = (0..100)
-        .map(|_| {
-            (
-                f32::gen_range(0.0, screen_width()),
-                f32::gen_range(0.0, screen_height()),
-            )
-        })
-        .collect();
+    let stars = Stars::new(100);
     let mid_x = screen_width() / 2.0;
     let mid_y = screen_height() / 2.0;
     let sail = Sail::new(Vec2::new(mid_x, mid_y), 100.0, 100.0, 50.0);
@@ -22,16 +15,38 @@ async fn main() {
     loop {
         clear_background(BLACK);
 
-        for &(x, y) in &stars {
-            draw_star(Vec2::new(x, y), 5.0);
-        }
-
         ship.update();
+
+        stars.draw();
         ship.draw();
 
         draw_text("IT WORKS!", 20.0, 20.0, 30.0, DARKGRAY);
 
         next_frame().await
+    }
+}
+
+struct Stars {
+    positions: Vec<Vec2>,
+}
+
+impl Stars {
+    fn new(count: usize) -> Self {
+        Self {
+            positions: (0..count)
+                .map(|_| {
+                    Vec2::new(
+                        f32::gen_range(0.0, screen_width()),
+                        f32::gen_range(0.0, screen_height()),
+                    )
+                })
+                .collect(),
+        }
+    }
+    fn draw(&self){
+        for &pos in &self.positions {
+            draw_star(pos, 5.0);
+        }
     }
 }
 
@@ -56,7 +71,13 @@ impl SpaceShip {
             mid + Vec2::new(-10.0, self.width / 2.0),
             BLUE,
         );
-        draw_rectangle(mid.x - self.width / 2.0, mid.y + 10.0, self.width, self.len, BLUE);
+        draw_rectangle(
+            mid.x - self.width / 2.0,
+            mid.y + 10.0,
+            self.width,
+            self.len,
+            BLUE,
+        );
     }
 }
 

@@ -35,6 +35,15 @@ impl Physics {
         self.bodies.insert(rb)
     }
 
+    pub fn add_joint(
+        &mut self,
+        joint: impl Into<JointParams>,
+        body1: RigidBodyHandle,
+        body2: RigidBodyHandle,
+    ) -> JointHandle {
+        self.joints.insert(body1, body2, joint)
+    }
+
     pub fn get(&self, rb: RigidBodyHandle) -> &RigidBody {
         &self.bodies[rb]
     }

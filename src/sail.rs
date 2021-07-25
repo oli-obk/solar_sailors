@@ -7,7 +7,8 @@ pub(crate) struct Sail {
     left_rope: ButtonControlledRange,
     right_rope: ButtonControlledRange,
     sail_width: ButtonControlledRange,
-    sail_body: RigidBodyHandle,
+    sail_left: RigidBodyHandle,
+    sail_right: RigidBodyHandle,
 }
 
 impl Sail {
@@ -18,14 +19,31 @@ impl Sail {
         sail_width: f32,
         min_sail_width: f32,
     ) -> Self {
+        let sail_left = RigidBodyBuilder::new_dynamic()
+            .can_sleep(false)
+            .additional_mass(10.0)
+            .additional_principal_angular_inertia(1.0)
+            .translation(vector![100.0, 100.0])
+            .build();
+        let mut sail_right = sail_left.clone();
+        sail_right.set_translation(vector![100.0 + sail_width / 2.0, 100.0], true);
+
+        let sail_left = physics.add(sail_left);
+        let sail_right = physics.add(sail_right);
+
+        let x = Vector::x_axis();
+        let mut joint = PrismaticJoint::new(point![0.0, 0.0], x, point![0.0, 0.0], x);
+        joint.limits = [min_sail_width, sail_width];
+        joint.limits_enabled = true;
+        joint.limits_impulse = 0.00001;
+        physics.add_joint(joint, sail_left, sail_right);
+
         let mut sail_width = ButtonControlledRange::new(sail_width, KeyCode::W);
         sail_width.min = min_sail_width;
 
-        let sail_body = RigidBodyBuilder::new_dynamic().can_sleep(false).additional_mass(10.0).build();
-        let sail_body = physics.add(sail_body);
-
         Self {
-            sail_body,
+            sail_left,
+            sail_right,
             left_rope: ButtonControlledRange::new(left_rope, KeyCode::A),
             right_rope: ButtonControlledRange::new(right_rope, KeyCode::D),
             sail_width,
@@ -44,7 +62,12 @@ impl Sail {
         draw_line(anchor.x, anchor.y, left_x, left_y, 1.0, GRAY);
         draw_line(anchor.x, anchor.y, right_x, right_y, 1.0, GRAY);
 
-        let sail_body = physics.get(self.sail_body);
+        let sail_body = physics.get(self.sail_left);
+        let pos = *sail_body.translation();
+        let x = pos[0];
+        let y = pos[1];
+        draw_circle(x, y, 20.0, PINK);
+        let sail_body = physics.get(self.sail_right);
         let pos = *sail_body.translation();
         let x = pos[0];
         let y = pos[1];

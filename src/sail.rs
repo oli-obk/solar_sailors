@@ -95,7 +95,9 @@ impl Sail {
         self.left_rope.update();
         self.right_rope.update();
         self.sail_width.update();
-        if let JointParams::PrismaticJoint(joint) = &mut physics[self.sail_motor].params {
+        let Joint { ref mut params, .. } = physics[self.sail_motor];
+
+        if let JointParams::PrismaticJoint(joint) = params {
             // Low stiffness makes size adjustment go slow. Large dampening prevents overshooting.
             joint.configure_motor_position(self.sail_width.value, 0.01, 0.99);
         } else {

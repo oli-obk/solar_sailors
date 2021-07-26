@@ -30,7 +30,7 @@ impl Sail {
 
         let sail_left = RigidBodyBuilder::new_dynamic()
             .can_sleep(false)
-            .additional_mass(10.0)
+            .additional_mass(1.0)
             .additional_principal_angular_inertia(1.0)
             .translation(vector![100.0, 100.0])
             .build();
@@ -48,35 +48,36 @@ impl Sail {
 
         let mut left_rope_joints = Vec::new();
         let mut right_rope_joints = Vec::new();
-        for (rope, sail) in &mut [
-            (&mut left_rope_joints, sail_left),
-            (&mut right_rope_joints, sail_right),
+        for (rope_length, rope, sail) in &mut [
+            (left_rope, &mut left_rope_joints, sail_left),
+            (right_rope, &mut right_rope_joints, sail_right),
         ] {
-            let mut prev_node = anchor;
-            let mut connect_nodes = |physics: &mut Physics, body1, body2| {
-                let mut segment = BallJoint::new(point![0.0, 10.0], point![0.0, 0.0]);
-                // Dampening 0.0 made it work, play with the parameters more!
-                segment.configure_motor_position(Rotation::new(0.0), 0.0, 0.0);
+            let mut connect_nodes = |physics: &mut Physics, body1, body2, segment_len| {
+                let segment = BallJoint::new(point![0.0, 0.0], point![0.0, -(segment_len as f32)]);
                 rope.push(physics.add_joint(segment, body1, body2));
             };
+
+            let segment_len = 10;
+            let mut prev_node = anchor;
             let mut mk_segment = |x, y| {
                 let next_node = RigidBodyBuilder::new_dynamic()
                     .can_sleep(false)
-                    .additional_mass(10.0)
-                    .additional_principal_angular_inertia(1.0)
+                    .additional_mass(0.1)
+                    .additional_principal_angular_inertia(100.0)
                     .translation(vector![x, y])
                     .build();
                 let next_node = physics.add(next_node);
-                connect_nodes(physics, prev_node, next_node);
+                connect_nodes(physics, prev_node, next_node, segment_len);
                 prev_node = next_node;
             };
-            for i in (0..(left_rope as usize)).step_by(10) {
+            let rope_length = *rope_length;
+            for i in (0..(rope_length as usize)).step_by(segment_len) {
                 mk_segment(
-                    100.0 + sail_width * (i as f32) / left_rope,
-                    100.0 + 100.0 * (i as f32) / left_rope,
+                    100.0 + sail_width / 2.0 * (i as f32) / rope_length,
+                    200.0 - 100.0 * (i as f32) / rope_length,
                 );
             }
-            connect_nodes(physics, prev_node, *sail);
+            connect_nodes(physics, prev_node, *sail, 0);
         }
 
         let mut sail_width = ButtonControlledRange::new(sail_width, KeyCode::W);

@@ -53,7 +53,7 @@ impl Physics {
     pub fn new() -> Self {
         Self {
             pipeline: PhysicsPipeline::new(),
-            gravity: vector![0.0, -10.0],
+            gravity: vector![0.0, -1.0],
             integration_parameters: IntegrationParameters::default(),
             islands: IslandManager::new(),
             broad_phase: BroadPhase::new(),

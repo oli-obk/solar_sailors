@@ -21,6 +21,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - run: trunk build --release
+      - run: cp target/wasm32-unknown-unknown/release/solar_sailors.wasm .
 
       - uses: peaceiris/actions-gh-pages@v3
         if: github.ref == 'refs/heads/main'

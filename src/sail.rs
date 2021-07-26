@@ -1,5 +1,5 @@
 use macroquad::prelude::*;
-use rapier2d::{na::Complex, prelude::*};
+use rapier2d::prelude::*;
 
 use crate::{controlled::ButtonControlledRange, physics::Physics};
 

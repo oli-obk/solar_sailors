@@ -99,19 +99,11 @@ impl Sail {
         draw_line(anchor.x, anchor.y, right_x, right_y, 1.0, GRAY);
 
         let draw_joint = |joint: JointHandle, color| {
-            let Joint {
-                body1,
-                body2,
-                params,
-                ..
-            } = physics[joint];
-            let params = params.as_ball_joint().unwrap();
-            let pos1 = physics[body1].position();
-            let pos = pos1.transform_point(&point![0.0, 0.0]);
+            let Joint { body1, body2, .. } = physics[joint];
+            let pos = physics[body1].translation();
             let x1 = pos[0];
             let y1 = pos[1];
-            let pos1 = physics[body2].position();
-            let pos = pos1.transform_point(&params.local_anchor2);
+            let pos = physics[body2].translation();
             let x2 = pos[0];
             let y2 = pos[1];
             draw_line(x1, y1, x2, y2, 1.0, color);

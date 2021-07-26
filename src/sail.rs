@@ -28,7 +28,7 @@ impl Sail {
 
         let sail = RigidBodyBuilder::new_dynamic()
             .can_sleep(false)
-            .additional_mass(1.0)
+            .additional_mass(0.01)
             .additional_principal_angular_inertia(1.0)
             .translation(vector![100.0 + sail_width / 2.0, 100.0])
             .build();
@@ -41,7 +41,7 @@ impl Sail {
             (left_rope, &mut left_rope_joints, -sail_width / 2.0),
             (right_rope, &mut right_rope_joints, sail_width / 2.0),
         ] {
-            let segment_len = 1;
+            let segment_len = 5;
             let mut connect_nodes = |physics: &mut Physics, body1, body2| {
                 let segment = BallJoint::new(point![0.0, -(segment_len as f32)], point![0.0, 0.0]);
                 rope.push(physics.add_joint(segment, body1, body2));
@@ -51,8 +51,8 @@ impl Sail {
             let mut mk_segment = |x, y| {
                 let next_node = RigidBodyBuilder::new_dynamic()
                     .can_sleep(false)
-                    .additional_mass(0.1)
-                    .additional_principal_angular_inertia(0.1)
+                    .additional_mass(0.01 * (segment_len as f32))
+                    .additional_principal_angular_inertia(0.00001 * (segment_len as f32))
                     .gravity_scale(0.0)
                     .translation(vector![x, y])
                     .build();

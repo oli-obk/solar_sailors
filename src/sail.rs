@@ -7,7 +7,7 @@ pub(crate) struct Sail {
     left_rope: ButtonControlledRange,
     right_rope: ButtonControlledRange,
     sail_width: ButtonControlledRange,
-    sail_motor: JointHandle,
+    sail: RigidBodyHandle,
     anchor: RigidBodyHandle,
     left_rope_joints: Vec<JointHandle>,
     right_rope_joints: Vec<JointHandle>,
@@ -22,61 +22,53 @@ impl Sail {
         min_sail_width: f32,
     ) -> Self {
         let anchor = RigidBodyBuilder::new_static()
-            .translation(vector![100.0, 200.0])
+            .translation(vector![100.0 + sail_width / 2.0, 200.0])
             .build();
         let anchor = physics.add(anchor);
 
-        let sail_left = RigidBodyBuilder::new_dynamic()
+        let sail = RigidBodyBuilder::new_dynamic()
             .can_sleep(false)
             .additional_mass(1.0)
             .additional_principal_angular_inertia(1.0)
-            .translation(vector![100.0, 100.0])
+            .translation(vector![100.0 + sail_width / 2.0, 100.0])
             .build();
-        let mut sail_right = sail_left.clone();
-        sail_right.set_translation(vector![100.0 + sail_width, 100.0], true);
 
-        let sail_left = physics.add(sail_left);
-        let sail_right = physics.add(sail_right);
-
-        let x = Vector::x_axis();
-        let mut joint = PrismaticJoint::new(point![0.0, 0.0], x, point![0.0, 0.0], x);
-        joint.limits = [min_sail_width, sail_width];
-        joint.limits_enabled = true;
-        let sail_motor = physics.add_joint(joint, sail_left, sail_right);
+        let sail = physics.add(sail);
 
         let mut left_rope_joints = Vec::new();
         let mut right_rope_joints = Vec::new();
-        for (rope_length, rope, sail) in &mut [
-            (left_rope, &mut left_rope_joints, sail_left),
-            (right_rope, &mut right_rope_joints, sail_right),
+        for (rope_length, rope, offset) in &mut [
+            (left_rope, &mut left_rope_joints, -sail_width / 2.0),
+            (right_rope, &mut right_rope_joints, sail_width / 2.0),
         ] {
-            let mut connect_nodes = |physics: &mut Physics, body1, body2, segment_len| {
-                let segment = BallJoint::new(point![0.0, 0.0], point![0.0, -(segment_len as f32)]);
+            let segment_len = 1;
+            let mut connect_nodes = |physics: &mut Physics, body1, body2| {
+                let segment = BallJoint::new(point![0.0, -(segment_len as f32)], point![0.0, 0.0]);
                 rope.push(physics.add_joint(segment, body1, body2));
             };
 
-            let segment_len = 10;
             let mut prev_node = anchor;
             let mut mk_segment = |x, y| {
                 let next_node = RigidBodyBuilder::new_dynamic()
                     .can_sleep(false)
                     .additional_mass(0.1)
-                    .additional_principal_angular_inertia(100.0)
+                    .additional_principal_angular_inertia(0.1)
                     .gravity_scale(0.0)
                     .translation(vector![x, y])
                     .build();
                 let next_node = physics.add(next_node);
-                connect_nodes(physics, prev_node, next_node, segment_len);
+                connect_nodes(physics, prev_node, next_node);
                 prev_node = next_node;
             };
             let rope_length = *rope_length;
-            for i in (0..(rope_length as usize)).step_by(segment_len) {
+            for i in (0..(rope_length as usize+1)).step_by(segment_len) {
                 mk_segment(
-                    100.0 + sail_width / 2.0 * (i as f32) / rope_length,
+                    100.0 + sail_width / 2.0 + *offset * (i as f32) / rope_length,
                     200.0 - 100.0 * (i as f32) / rope_length,
                 );
             }
-            connect_nodes(physics, prev_node, *sail, 0);
+            let segment = BallJoint::new(point![*offset, 0.0], point![0.0, 0.0]);
+            rope.push(physics.add_joint(segment, sail, prev_node));
         }
 
         let mut sail_width = ButtonControlledRange::new(sail_width, KeyCode::W);
@@ -86,7 +78,7 @@ impl Sail {
             left_rope: ButtonControlledRange::new(left_rope, KeyCode::A),
             right_rope: ButtonControlledRange::new(right_rope, KeyCode::D),
             sail_width,
-            sail_motor,
+            sail,
             anchor,
             left_rope_joints,
             right_rope_joints,
@@ -96,14 +88,6 @@ impl Sail {
         self.left_rope.update();
         self.right_rope.update();
         self.sail_width.update();
-        let Joint { ref mut params, .. } = physics[self.sail_motor];
-
-        if let JointParams::PrismaticJoint(joint) = params {
-            // Low stiffness makes size adjustment go slow. Large dampening prevents overshooting.
-            joint.configure_motor_position(self.sail_width.value, 0.01, 0.99);
-        } else {
-            unreachable!()
-        }
     }
     pub(crate) fn draw(&self, anchor: Vec2, physics: &Physics) {
         let (left_x, left_y, right_x, right_y) = self.rope_positions(anchor);
@@ -114,21 +98,31 @@ impl Sail {
         draw_line(anchor.x, anchor.y, right_x, right_y, 1.0, GRAY);
 
         let draw_joint = |joint: JointHandle, color| {
-            let Joint { body1, body2, .. } = physics[joint];
-
-            let pos = physics[body1].translation();
+            let Joint {
+                body1,
+                body2,
+                params,
+                ..
+            } = physics[joint];
+            let params = params.as_ball_joint().unwrap();
+            let pos1 = physics[body1].position();
+            let pos = pos1.transform_point(&point![0.0, 0.0]);
             let x1 = pos[0];
             let y1 = pos[1];
-            let pos = physics[body2].translation();
+            let pos = pos1.transform_point(&params.local_anchor1);
             let x2 = pos[0];
             let y2 = pos[1];
             draw_line(x1, y1, x2, y2, 1.0, color);
         };
 
-        draw_joint(self.sail_motor, GOLD);
+        let pos = *physics[self.sail].position();
+        let left = pos.transform_point(&point![-self.sail_width.value / 2.0, 0.0]);
+        let right = pos.transform_point(&point![self.sail_width.value / 2.0, 0.0]);
+
+        draw_line(left[0], left[1], right[0], right[1], 1.0, GOLD);
 
         for &rope in &[&self.right_rope_joints, &self.left_rope_joints] {
-            for &joint in rope {
+            for &joint in rope.iter().rev().skip(1).rev() {
                 draw_joint(joint, GRAY);
             }
         }

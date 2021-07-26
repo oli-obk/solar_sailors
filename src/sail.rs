@@ -62,7 +62,7 @@ impl Sail {
                 prev_node = next_node;
             };
             let rope_length = *rope_length;
-            for i in (0..(rope_length as usize+1)).step_by(segment_len) {
+            for i in (0..(rope_length as usize + 1)).step_by(segment_len) {
                 mk_segment(
                     100.0 + sail_width / 2.0 + *offset * (i as f32) / rope_length,
                     200.0 - 100.0 * (i as f32) / rope_length,
@@ -89,6 +89,25 @@ impl Sail {
         self.left_rope.update();
         self.right_rope.update();
         self.sail_width.update();
+
+        // Resize the sail
+        for (rope, dir) in [
+            (&self.right_rope_joints, 1.0),
+            (&self.left_rope_joints, -1.0),
+        ] {
+            // Last rope segment is the connection to the sail
+            let rope = &mut physics[*rope.last().unwrap()];
+            if let JointParams::BallJoint(joint) = &mut rope.params {
+                // We only modify the x corrdinate of the anchor at the sail
+                let x = &mut joint.local_anchor1.coords[0];
+                // Compute the difference between the desired sail size and the actual sail size
+                let diff = *x - dir * self.sail_width.value / 2.0;
+                let step = 0.01;
+                if diff.abs() >= step {
+                    *x -= diff.signum() * step;
+                }
+            }
+        }
     }
     pub(crate) fn draw(&self, anchor: Vec2, physics: &Physics) {
         let (left_x, left_y, right_x, right_y) = self.rope_positions(anchor);
@@ -98,6 +117,7 @@ impl Sail {
         draw_line(anchor.x, anchor.y, left_x, left_y, 1.0, GRAY);
         draw_line(anchor.x, anchor.y, right_x, right_y, 1.0, GRAY);
 
+        // Draws a single rope segment
         let draw_joint = |joint: JointHandle, color| {
             let Joint { body1, body2, .. } = physics[joint];
             let pos = physics[body1].translation();
@@ -109,17 +129,22 @@ impl Sail {
             draw_line(x1, y1, x2, y2, 1.0, color);
         };
 
-        let pos = *physics[self.sail].position();
-        let left = pos.transform_point(&point![-self.sail_width.value / 2.0, 0.0]);
-        let right = pos.transform_point(&point![self.sail_width.value / 2.0, 0.0]);
-
-        draw_line(left[0], left[1], right[0], right[1], 1.0, GOLD);
-
+        // Draw the rope
         for &rope in &[&self.right_rope_joints, &self.left_rope_joints] {
             for &joint in rope.iter().rev().skip(1).rev() {
                 draw_joint(joint, GRAY);
             }
         }
+
+        // Draw the sail
+        let left = &physics[*self.left_rope_joints.last().unwrap()];
+        let joint = left.params.as_ball_joint().unwrap().local_anchor1;
+        let left = physics[left.body1].position().transform_point(&joint);
+        let right = &physics[*self.right_rope_joints.last().unwrap()];
+        let joint = right.params.as_ball_joint().unwrap().local_anchor1;
+        let right = physics[right.body1].position().transform_point(&joint);
+
+        draw_line(left[0], left[1], right[0], right[1], 1.0, GOLD);
     }
 
     /// Compute the position of the sail corners

@@ -1,4 +1,4 @@
-name: Continuous Integration
+name: Continuous integration
 
 on:
   push:
@@ -16,6 +16,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: sudo apt -yq --no-install-suggests --no-install-recommends install libasound2-dev
     - name: Build
       run: cargo build --verbose
     - name: Run tests

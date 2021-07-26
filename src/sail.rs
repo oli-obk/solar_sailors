@@ -41,6 +41,7 @@ impl Sail {
             (left_rope, &mut left_rope_joints, -sail_width / 2.0),
             (right_rope, &mut right_rope_joints, sail_width / 2.0),
         ] {
+            // Shorter segments are more rope-y, but also accumulate more error
             let segment_len = 5;
             let mut connect_nodes = |physics: &mut Physics, body1, body2| {
                 let segment = BallJoint::new(point![0.0, -(segment_len as f32)], point![0.0, 0.0]);

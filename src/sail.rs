@@ -110,7 +110,8 @@ impl Sail {
             let pos = pos1.transform_point(&point![0.0, 0.0]);
             let x1 = pos[0];
             let y1 = pos[1];
-            let pos = pos1.transform_point(&params.local_anchor1);
+            let pos1 = physics[body2].position();
+            let pos = pos1.transform_point(&params.local_anchor2);
             let x2 = pos[0];
             let y2 = pos[1];
             draw_line(x1, y1, x2, y2, 1.0, color);

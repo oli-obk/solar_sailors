@@ -62,6 +62,7 @@ impl Sail {
                     .can_sleep(false)
                     .additional_mass(0.1)
                     .additional_principal_angular_inertia(100.0)
+                    .gravity_scale(0.0)
                     .translation(vector![x, y])
                     .build();
                 let next_node = physics.add(next_node);

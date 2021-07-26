@@ -7,8 +7,6 @@ pub(crate) struct Sail {
     left_rope: ButtonControlledRange,
     right_rope: ButtonControlledRange,
     sail_width: ButtonControlledRange,
-    sail_left: RigidBodyHandle,
-    sail_right: RigidBodyHandle,
     sail_motor: JointHandle,
     anchor: RigidBodyHandle,
     left_rope_joints: Vec<JointHandle>,
@@ -84,8 +82,6 @@ impl Sail {
         sail_width.min = min_sail_width;
 
         Self {
-            sail_left,
-            sail_right,
             left_rope: ButtonControlledRange::new(left_rope, KeyCode::A),
             right_rope: ButtonControlledRange::new(right_rope, KeyCode::D),
             sail_width,

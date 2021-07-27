@@ -18,7 +18,7 @@ async fn main() {
 
     let mut physics = Physics::new();
 
-    let sail = Sail::new(&mut physics, 100.0, 80.0, 50.0, 10.0);
+    let sail = Sail::new(&mut physics, 100.0, 99.0, 50.0, 10.0);
     let mut ship = SpaceShip {
         sail,
         len: 50.0,

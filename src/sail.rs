@@ -28,7 +28,7 @@ impl Sail {
 
         let sail = RigidBodyBuilder::new_dynamic()
             .can_sleep(false)
-            .additional_mass(0.01)
+            .additional_mass(0.1)
             .additional_principal_angular_inertia(1.0)
             .translation(vector![100.0 + sail_width / 2.0, 100.0])
             .build();
@@ -42,7 +42,7 @@ impl Sail {
             (right_rope, &mut right_rope_joints, sail_width / 2.0),
         ] {
             // Shorter segments are more rope-y, but also accumulate more error
-            let segment_len = 5;
+            let segment_len = 2;
             let mut connect_nodes = |physics: &mut Physics, body1, body2| {
                 let segment = BallJoint::new(point![0.0, -(segment_len as f32)], point![0.0, 0.0]);
                 rope.push(physics.add_joint(segment, body1, body2));
@@ -90,7 +90,7 @@ impl Sail {
         self.right_rope.update();
         self.sail_width.update();
 
-        // Resize the sail
+        // Resize the sail and apply the photon pressure
         for (rope, dir) in [
             (&self.right_rope_joints, 1.0),
             (&self.left_rope_joints, -1.0),
@@ -98,13 +98,26 @@ impl Sail {
             // Last rope segment is the connection to the sail
             let rope = &mut physics[*rope.last().unwrap()];
             if let JointParams::BallJoint(joint) = &mut rope.params {
-                // We only modify the x corrdinate of the anchor at the sail
+                // We only modify the x coordinate of the anchor at the sail
                 let x = &mut joint.local_anchor1.coords[0];
                 // Compute the difference between the desired sail size and the actual sail size
                 let diff = *x - dir * self.sail_width.value / 2.0;
                 let step = 0.01;
                 if diff.abs() >= step {
                     *x -= diff.signum() * step;
+                }
+
+                // Apply force only once
+                if dir > 0.0 {
+                    // Don't care if I'm left or right
+                    let x = x.abs();
+                    // The area that photons hit.
+                    let sail = &mut physics[self.sail];
+                    let sail_volume = sail.rotation().transform_vector(&vector![1.0, 0.0])[0];
+                    let force = sail
+                        .rotation()
+                        .transform_vector(&vector![0.0, -sail_volume * x * 0.01]);
+                    sail.apply_force(force, true);
                 }
             }
         }

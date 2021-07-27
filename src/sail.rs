@@ -87,8 +87,8 @@ impl Sail {
 
         // Resize the sail and apply the photon pressure
         for (rope, dir) in [
-            (&self.right_rope_joints, 1.0),
-            (&self.left_rope_joints, -1.0),
+            (&self.right_rope_joints, 0.5),
+            (&self.left_rope_joints, -0.5),
         ] {
             // Last rope segment is the connection to the sail
             let rope = &mut physics[*rope.last().unwrap()];
@@ -96,11 +96,9 @@ impl Sail {
                 // We only modify the x coordinate of the anchor at the sail
                 let x = &mut joint.local_anchor1.coords[0];
                 // Compute the difference between the desired sail size and the actual sail size
-                let diff = *x - dir * self.sail_width.value / 2.0;
+
                 let step = 0.01;
-                if diff.abs() >= step {
-                    *x -= diff.signum() * step;
-                }
+                *x = self.sail_width.apply(*x, dir, step);
 
                 // Apply force only once
                 if dir > 0.0 {

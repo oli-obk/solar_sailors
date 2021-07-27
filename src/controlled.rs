@@ -26,4 +26,13 @@ impl ButtonControlledRange {
             }
         }
     }
+
+    pub fn apply(&self, value: f32, dir: f32, step: f32) -> f32 {
+        let diff = value - dir * self.value;
+        if diff.abs() >= step {
+            value - diff.signum() * step
+        } else {
+            value
+        }
+    }
 }

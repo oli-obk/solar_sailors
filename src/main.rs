@@ -1,5 +1,6 @@
 use macroquad::prelude::*;
 use physics::Physics;
+use rapier2d::prelude::*;
 use sail::Sail;
 use ship::SpaceShip;
 use stars::Stars;
@@ -18,7 +19,7 @@ async fn main() {
 
     let mut physics = Physics::new();
 
-    let sail = Sail::new(&mut physics, 100.0, 99.0, 50.0, 10.0);
+    let sail = Sail::new(&mut physics, 50.0, 10.0, vector![mid_x, mid_y]);
     let mut ship = SpaceShip {
         sail,
         len: 50.0,

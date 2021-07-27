@@ -14,7 +14,7 @@ impl SpaceShip {
         self.sail.update(physics);
     }
     pub(crate) fn draw(&self, physics: &Physics) {
-        self.sail.draw(self.pos, physics);
+        self.sail.draw(physics);
 
         // Spaceship
         let mid = self.pos;

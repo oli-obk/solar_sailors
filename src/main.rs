@@ -40,7 +40,16 @@ async fn main() {
         stars.draw();
         ship.draw(&physics);
 
-        draw_text("IT WORKS!", 20.0, 20.0, 30.0, DARKGRAY);
+        draw_text(
+            "SHIFT: pull/shrink any of the following",
+            20.0,
+            20.0,
+            30.0,
+            DARKGRAY,
+        );
+        draw_text("W: sail", 20.0, 40.0, 30.0, DARKGRAY);
+        draw_text("S: left rope", 20.0, 60.0, 30.0, DARKGRAY);
+        draw_text("D: right rope", 20.0, 80.0, 30.0, DARKGRAY);
 
         // Let the engine actually do stuff
 

@@ -18,18 +18,6 @@ impl SpaceShip {
 
         // Spaceship
         let mid = self.pos;
-        draw_triangle(
-            mid,
-            mid + Vec2::new(10.0, self.width / 2.0),
-            mid + Vec2::new(-10.0, self.width / 2.0),
-            BLUE,
-        );
-        draw_rectangle(
-            mid.x - self.width / 2.0,
-            mid.y + 10.0,
-            self.width,
-            self.len,
-            BLUE,
-        );
+        draw_rectangle(mid.x - self.width / 2.0, mid.y, self.width, self.len, BLUE);
     }
 }

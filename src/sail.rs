@@ -1,3 +1,5 @@
+use std::cmp::min;
+
 use macroquad::prelude::*;
 use rapier2d::prelude::*;
 
@@ -10,6 +12,7 @@ pub(crate) struct Sail {
     sail: RigidBodyHandle,
     left_rope_joints: Vec<JointHandle>,
     right_rope_joints: Vec<JointHandle>,
+    anchor_pos: Vector<Real>,
 }
 
 impl Sail {
@@ -20,11 +23,6 @@ impl Sail {
         anchor_pos: Vector<Real>,
     ) -> Self {
         let rope_length = 100;
-
-        let anchor = RigidBodyBuilder::new_static()
-            .translation(anchor_pos)
-            .build();
-        let anchor = physics.add(anchor);
 
         let sail = RigidBodyBuilder::new_dynamic()
             .can_sleep(false)
@@ -37,15 +35,28 @@ impl Sail {
 
         let mut left_rope_joints = Vec::new();
         let mut right_rope_joints = Vec::new();
-        for (rope, offset) in &mut [
-            (&mut left_rope_joints, -sail_width / 2.0),
-            (&mut right_rope_joints, sail_width / 2.0),
+        for (rope, offset, y_offset) in &mut [
+            (
+                &mut left_rope_joints,
+                -sail_width / 2.0,
+                -min_sail_width / 2.0,
+            ),
+            (
+                &mut right_rope_joints,
+                sail_width / 2.0,
+                min_sail_width / 2.0,
+            ),
         ] {
             let mut connect_nodes = |physics: &mut Physics, body1, body2| {
                 let segment = BallJoint::new(point![0.0, -1.0], point![0.0, 0.0]);
                 rope.push(physics.add_joint(segment, body1, body2));
             };
 
+            let anchor_pos = anchor_pos + vector![*y_offset, -5.0];
+            let anchor = RigidBodyBuilder::new_static()
+                .translation(anchor_pos)
+                .build();
+            let anchor = physics.add(anchor);
             let mut prev_node = anchor;
             let mut mk_segment = |pos| {
                 let next_node = RigidBodyBuilder::new_dynamic()
@@ -78,6 +89,7 @@ impl Sail {
             sail,
             left_rope_joints,
             right_rope_joints,
+            anchor_pos,
         }
     }
     pub(crate) fn update(&mut self, physics: &mut Physics) {
@@ -117,6 +129,33 @@ impl Sail {
     }
 
     pub(crate) fn draw(&self, physics: &Physics) {
+        // Draw the sail anchor
+        {
+            let side = 5.0;
+            let left = self.anchor_pos[0] - self.sail_width.min / 2.0;
+            let top = self.anchor_pos[1] - side;
+            draw_rectangle(
+                left - side,
+                top,
+                self.sail_width.min + side * 2.0,
+                side,
+                BLUE,
+            );
+            draw_triangle(
+                vec2(left - side, top),
+                vec2(left - side, top - side),
+                vec2(left, top),
+                BLUE,
+            );
+            let right = self.anchor_pos[0] + self.sail_width.min / 2.0;
+            draw_triangle(
+                vec2(right + side, top),
+                vec2(right + side, top - side),
+                vec2(right, top),
+                BLUE,
+            );
+        }
+
         // Draws a single rope segment
         let draw_joint = |joint: JointHandle, color| {
             let Joint { body1, body2, .. } = physics[joint];

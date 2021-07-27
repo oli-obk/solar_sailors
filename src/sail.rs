@@ -50,7 +50,7 @@ impl Sail {
             let mut mk_segment = |pos| {
                 let next_node = RigidBodyBuilder::new_dynamic()
                     .can_sleep(false)
-                    .additional_mass(0.01)
+                    .additional_mass(0.001)
                     .additional_principal_angular_inertia(0.00001)
                     .gravity_scale(0.0)
                     .translation(pos)

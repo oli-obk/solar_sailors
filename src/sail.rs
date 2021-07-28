@@ -1,5 +1,3 @@
-use std::cmp::min;
-
 use macroquad::prelude::*;
 use rapier2d::prelude::*;
 
@@ -93,10 +91,6 @@ impl Sail {
         }
     }
     pub(crate) fn update(&mut self, physics: &mut Physics) {
-        self.left_rope.update();
-        self.right_rope.update();
-        self.sail_width.update();
-
         // Resize the sail and apply the photon pressure
         for (rope, dir) in [
             (&self.right_rope_joints, 0.5),
@@ -110,7 +104,7 @@ impl Sail {
                 // Compute the difference between the desired sail size and the actual sail size
 
                 let step = 0.01;
-                *x = self.sail_width.apply(*x, dir, step);
+                *x = self.sail_width.apply(*x / dir, step) * dir;
 
                 // Apply force only once
                 if dir > 0.0 {

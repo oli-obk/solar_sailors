@@ -2,7 +2,6 @@ use macroquad::prelude::*;
 
 pub(crate) struct ButtonControlledRange {
     pub min: f32,
-    pub value: f32,
     pub max: f32,
     keycode: KeyCode,
 }
@@ -10,29 +9,22 @@ pub(crate) struct ButtonControlledRange {
 impl ButtonControlledRange {
     pub fn new(max: f32, keycode: KeyCode) -> Self {
         Self {
-            value: max,
             keycode,
             min: 0.0,
             max,
         }
     }
 
-    pub fn update(&mut self) {
-        if is_key_down(self.keycode) {
-            if is_key_down(KeyCode::LeftShift) {
-                self.value = self.min.max(self.value - 1.0);
-            } else {
-                self.value = self.max.min(self.value + 1.0);
-            }
+    pub fn apply(&self, value: f32, step: f32) -> f32 {
+        if !is_key_down(self.keycode) {
+            return value;
         }
-    }
-
-    pub fn apply(&self, value: f32, dir: f32, step: f32) -> f32 {
-        let diff = value - dir * self.value;
-        if diff.abs() >= step {
-            value - diff.signum() * step
+        let new = if is_key_down(KeyCode::LeftShift) {
+            value - step
         } else {
-            value
-        }
+            value + step
+        };
+        println!("{} + {}", value, step);
+        new.min(self.max).max(self.min)
     }
 }

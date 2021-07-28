@@ -4,13 +4,15 @@ use rapier2d::prelude::*;
 use crate::{controlled::ButtonControlledRange, physics::Physics};
 
 pub(crate) struct Sail {
-    left_rope: ButtonControlledRange,
-    right_rope: ButtonControlledRange,
     sail_width: ButtonControlledRange,
     sail: RigidBodyHandle,
-    left_rope_joints: Vec<JointHandle>,
-    right_rope_joints: Vec<JointHandle>,
+    ropes: [Rope; 2],
     anchor_pos: Vector<Real>,
+}
+
+struct Rope {
+    controller: ButtonControlledRange,
+    joints: Vec<JointHandle>,
 }
 
 impl Sail {
@@ -31,26 +33,25 @@ impl Sail {
 
         let sail = physics.add(sail);
 
-        let mut left_rope_joints = Vec::new();
-        let mut right_rope_joints = Vec::new();
-        for (rope, offset, y_offset) in &mut [
-            (
-                &mut left_rope_joints,
-                -sail_width / 2.0,
-                -min_sail_width / 2.0,
-            ),
-            (
-                &mut right_rope_joints,
-                sail_width / 2.0,
-                min_sail_width / 2.0,
-            ),
-        ] {
+        let mut ropes = [
+            Rope {
+                controller: ButtonControlledRange::new(100.0, KeyCode::A),
+                joints: Vec::new(),
+            },
+            Rope {
+                controller: ButtonControlledRange::new(100.0, KeyCode::D),
+                joints: Vec::new(),
+            },
+        ];
+        for (rope, dir) in ropes.iter_mut().zip([-1.0, 1.0]) {
+            let offset = sail_width / 2.0 * dir;
+            let y_offset = min_sail_width / 2.0 * dir;
             let mut connect_nodes = |physics: &mut Physics, body1, body2| {
                 let segment = BallJoint::new(point![0.0, -1.0], point![0.0, 0.0]);
-                rope.push(physics.add_joint(segment, body1, body2));
+                rope.joints.push(physics.add_joint(segment, body1, body2));
             };
 
-            let anchor_pos = anchor_pos + vector![*y_offset, -5.0];
+            let anchor_pos = anchor_pos + vector![y_offset, -5.0];
             let anchor = RigidBodyBuilder::new_static()
                 .translation(anchor_pos)
                 .build();
@@ -71,33 +72,28 @@ impl Sail {
             for i in 0..rope_length {
                 let rope_length = rope_length as f32;
                 let frac = (i as f32) / rope_length;
-                mk_segment(anchor_pos + vector![*offset * frac, -rope_length * frac]);
+                mk_segment(anchor_pos + vector![offset * frac, -rope_length * frac]);
             }
-            let segment = BallJoint::new(point![*offset, 0.0], point![0.0, 0.0]);
-            rope.push(physics.add_joint(segment, sail, prev_node));
+            let segment = BallJoint::new(point![offset, 0.0], point![0.0, 0.0]);
+            rope.joints
+                .push(physics.add_joint(segment, sail, prev_node));
         }
 
         let mut sail_width = ButtonControlledRange::new(sail_width, KeyCode::W);
         sail_width.min = min_sail_width;
 
         Self {
-            left_rope: ButtonControlledRange::new(100.0, KeyCode::A),
-            right_rope: ButtonControlledRange::new(100.0, KeyCode::D),
             sail_width,
             sail,
-            left_rope_joints,
-            right_rope_joints,
+            ropes,
             anchor_pos,
         }
     }
     pub(crate) fn update(&mut self, physics: &mut Physics) {
         // Resize the sail and apply the photon pressure
-        for (rope, dir) in [
-            (&self.right_rope_joints, 0.5),
-            (&self.left_rope_joints, -0.5),
-        ] {
+        for (rope, dir) in self.ropes.iter().zip([-0.5, 0.5]) {
             // Last rope segment is the connection to the sail
-            let rope = &mut physics[*rope.last().unwrap()];
+            let rope = &mut physics[*rope.joints.last().unwrap()];
             if let JointParams::BallJoint(joint) = &mut rope.params {
                 // We only modify the x coordinate of the anchor at the sail
                 let x = &mut joint.local_anchor1.coords[0];
@@ -163,17 +159,17 @@ impl Sail {
         };
 
         // Draw the rope
-        for &rope in &[&self.right_rope_joints, &self.left_rope_joints] {
-            for &joint in rope.iter().rev().skip(1).rev() {
+        for rope in &self.ropes {
+            for &joint in rope.joints.iter().rev().skip(1).rev() {
                 draw_joint(joint, GRAY);
             }
         }
 
         // Draw the sail
-        let left = &physics[*self.left_rope_joints.last().unwrap()];
+        let left = &physics[*self.ropes[0].joints.last().unwrap()];
         let joint = left.params.as_ball_joint().unwrap().local_anchor1;
         let left = physics[left.body1].position().transform_point(&joint);
-        let right = &physics[*self.right_rope_joints.last().unwrap()];
+        let right = &physics[*self.ropes[1].joints.last().unwrap()];
         let joint = right.params.as_ball_joint().unwrap().local_anchor1;
         let right = physics[right.body1].position().transform_point(&joint);
 

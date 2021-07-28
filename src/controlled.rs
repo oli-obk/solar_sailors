@@ -7,12 +7,8 @@ pub(crate) struct ButtonControlledRange {
 }
 
 impl ButtonControlledRange {
-    pub fn new(max: f32, keycode: KeyCode) -> Self {
-        Self {
-            keycode,
-            min: 0.0,
-            max,
-        }
+    pub fn new(min: f32, max: f32, keycode: KeyCode) -> Self {
+        Self { keycode, min, max }
     }
 
     pub fn apply(&self, value: f32, step: f32) -> f32 {
@@ -24,7 +20,6 @@ impl ButtonControlledRange {
         } else {
             value + step
         };
-        println!("{} + {}", value, step);
         new.min(self.max).max(self.min)
     }
 }

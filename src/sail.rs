@@ -1,3 +1,5 @@
+use std::mem;
+
 use macroquad::prelude::*;
 use rapier2d::prelude::*;
 
@@ -13,6 +15,10 @@ pub(crate) struct Sail {
 struct Rope {
     controller: ButtonControlledRange,
     joints: Vec<JointHandle>,
+    /// Whenever a joint from the above list is fully pulled in,
+    /// the next joint gets attached to the anchor. Remember the list
+    /// of correct bodies here.
+    pulled_in_joints: Vec<RigidBodyHandle>,
 }
 
 impl Sail {
@@ -35,12 +41,14 @@ impl Sail {
 
         let mut ropes = [
             Rope {
-                controller: ButtonControlledRange::new(100.0, KeyCode::A),
+                controller: ButtonControlledRange::new(-1.0, 0.0, KeyCode::A),
                 joints: Vec::new(),
+                pulled_in_joints: Vec::new(),
             },
             Rope {
-                controller: ButtonControlledRange::new(100.0, KeyCode::D),
+                controller: ButtonControlledRange::new(-1.0, 0.0, KeyCode::D),
                 joints: Vec::new(),
+                pulled_in_joints: Vec::new(),
             },
         ];
         for (rope, dir) in ropes.iter_mut().zip([-1.0, 1.0]) {
@@ -79,8 +87,7 @@ impl Sail {
                 .push(physics.add_joint(segment, sail, prev_node));
         }
 
-        let mut sail_width = ButtonControlledRange::new(sail_width, KeyCode::W);
-        sail_width.min = min_sail_width;
+        let sail_width = ButtonControlledRange::new(min_sail_width, sail_width, KeyCode::W);
 
         Self {
             sail_width,
@@ -89,12 +96,13 @@ impl Sail {
             anchor_pos,
         }
     }
+
     pub(crate) fn update(&mut self, physics: &mut Physics) {
         // Resize the sail and apply the photon pressure
-        for (rope, dir) in self.ropes.iter().zip([-0.5, 0.5]) {
+        for (rope, dir) in self.ropes.iter_mut().zip([-0.5, 0.5]) {
             // Last rope segment is the connection to the sail
-            let rope = &mut physics[*rope.joints.last().unwrap()];
-            if let JointParams::BallJoint(joint) = &mut rope.params {
+            let sail_connection = &mut physics[*rope.joints.last().unwrap()];
+            if let JointParams::BallJoint(joint) = &mut sail_connection.params {
                 // We only modify the x coordinate of the anchor at the sail
                 let x = &mut joint.local_anchor1.coords[0];
                 // Compute the difference between the desired sail size and the actual sail size
@@ -111,8 +119,30 @@ impl Sail {
                     let sail_volume = sail.rotation().transform_vector(&vector![1.0, 0.0])[0];
                     let force = sail
                         .rotation()
-                        .transform_vector(&vector![0.0, -sail_volume * x * 0.01]);
+                        .transform_vector(&vector![0.0, -sail_volume * x * 0.1]);
                     sail.apply_force(force, true);
+                }
+            }
+            if rope.joints.len() > rope.pulled_in_joints.len() {
+                let segment = &mut physics[rope.joints[rope.pulled_in_joints.len()]];
+                if let JointParams::BallJoint(joint) = &mut segment.params {
+                    let y = &mut joint.local_anchor1.coords[1];
+                    let step = -0.01;
+                    *y = rope.controller.apply(*y, step);
+                    if *y == rope.controller.max {
+                        // Take the next element and attach it to the anchor
+                        let anchor = segment.body1;
+                        rope.pulled_in_joints.push(segment.body2);
+                        let new_first = &mut physics[rope.joints[rope.pulled_in_joints.len()]];
+                        let body = mem::replace(&mut new_first.body1, anchor);
+                        assert_eq!(body, *rope.pulled_in_joints.last().unwrap());
+                    } else if *y == rope.controller.min {
+                        // Take out a new chain segment (if any)
+                        if let Some(next) = rope.pulled_in_joints.pop() {
+                            // Connect current element to newly released chain segment
+                            segment.body1 = next;
+                        }
+                    }
                 }
             }
         }

@@ -6,6 +6,7 @@ pub(crate) struct Sail {
     left_rope: ButtonControlledRange,
     right_rope: ButtonControlledRange,
     sail_width: ButtonControlledRange,
+    anchor_pos: Vec2,
 }
 
 impl Sail {
@@ -14,24 +15,56 @@ impl Sail {
         right_rope: f32,
         sail_width: f32,
         min_sail_width: f32,
+        anchor_pos: Vec2,
     ) -> Self {
-        let mut sail_width = ButtonControlledRange::new(sail_width, KeyCode::W);
-        sail_width.min = min_sail_width;
+        let sail_width = ButtonControlledRange::new(min_sail_width, sail_width, KeyCode::W);
+
         Self {
-            left_rope: ButtonControlledRange::new(left_rope, KeyCode::A),
-            right_rope: ButtonControlledRange::new(right_rope, KeyCode::D),
+            left_rope: ButtonControlledRange::new(1.0,left_rope, KeyCode::A),
+            right_rope: ButtonControlledRange::new(1.0, right_rope, KeyCode::D),
             sail_width,
+            anchor_pos,
         }
     }
+
     pub(crate) fn update(&mut self) {
         self.left_rope.update();
         self.right_rope.update();
         self.sail_width.update();
     }
-    pub(crate) fn draw(&self, anchor: Vec2) {
+
+    pub(crate) fn draw(&self) {
+        let anchor = self.anchor_pos;
+        let side = 5.0;
+        // Draw the sail anchor
+        {
+            let left = anchor[0] - self.sail_width.min / 2.0;
+            let top = anchor[1] - side;
+            draw_rectangle(
+                left - side,
+                top,
+                self.sail_width.min + side * 2.0,
+                side,
+                BLUE,
+            );
+            draw_triangle(
+                vec2(left - side, top),
+                vec2(left - side, top - side),
+                vec2(left, top),
+                BLUE,
+            );
+            let right = anchor[0] + self.sail_width.min / 2.0;
+            draw_triangle(
+                vec2(right + side, top),
+                vec2(right + side, top - side),
+                vec2(right, top),
+                BLUE,
+            );
+        }
+        let anchor = anchor - vec2(0.0, side);
         let (left_x, left_y, right_x, right_y) = self.rope_positions(anchor);
         // Sail
-        draw_line(left_x, left_y, right_x, right_y, 1.0, YELLOW);
+        draw_line(left_x, left_y, right_x, right_y, 1.0, GOLD);
         // Ropes
         draw_line(anchor.x, anchor.y, left_x, left_y, 1.0, GRAY);
         draw_line(anchor.x, anchor.y, right_x, right_y, 1.0, GRAY);

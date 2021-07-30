@@ -20,7 +20,7 @@ impl Sail {
         let sail_width = ButtonControlledRange::new(min_sail_width, sail_width, KeyCode::W);
 
         Self {
-            left_rope: ButtonControlledRange::new(1.0,left_rope, KeyCode::A),
+            left_rope: ButtonControlledRange::new(1.0, left_rope, KeyCode::A),
             right_rope: ButtonControlledRange::new(1.0, right_rope, KeyCode::D),
             sail_width,
             anchor_pos,

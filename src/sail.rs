@@ -62,16 +62,16 @@ impl Sail {
             );
         }
         let anchor = anchor - vec2(0.0, side);
-        let (left_x, left_y, right_x, right_y) = self.rope_positions(anchor);
+        let (left, right) = self.rope_positions(anchor);
         // Sail
-        draw_line(left_x, left_y, right_x, right_y, 1.0, GOLD);
+        draw_line(left, right, 1.0, GOLD);
         // Ropes
-        draw_line(anchor.x, anchor.y, left_x, left_y, 1.0, GRAY);
-        draw_line(anchor.x, anchor.y, right_x, right_y, 1.0, GRAY);
+        draw_line(anchor, left, 1.0, GRAY);
+        draw_line(anchor, right, 1.0, GRAY);
     }
 
     /// Compute the position of the sail corners
-    fn rope_positions(&self, anchor: Vec2) -> (f32, f32, f32, f32) {
+    fn rope_positions(&self, anchor: Vec2) -> (Vec2, Vec2) {
         let angle = rope_angle(
             self.left_rope.value,
             self.right_rope.value,
@@ -81,12 +81,14 @@ impl Sail {
         let x = half_angle.sin();
         let y = half_angle.cos();
         (
-            -x * self.left_rope.value + anchor.x,
-            -y * self.left_rope.value + anchor.y,
-            x * self.right_rope.value + anchor.x,
-            -y * self.right_rope.value + anchor.y,
+            vec2(-x, -y) * self.left_rope.value + anchor,
+            vec2(x, -y) * self.right_rope.value + anchor,
         )
     }
+}
+
+pub fn draw_line(a: Vec2, b: Vec2, thickness: f32, color: Color) {
+    macroquad::prelude::draw_line(a.x, a.y, b.x, b.y, thickness, color)
 }
 
 /// Find the angle between "a" and "b" for a triangle with the given three side lengths.

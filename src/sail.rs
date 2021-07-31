@@ -7,6 +7,9 @@ pub(crate) struct Sail {
     right_rope: ButtonControlledRange,
     sail_width: ButtonControlledRange,
     anchor_pos: Vec2,
+    /// When the sail moves due to different rope lengths, this is all that actually changes.
+    current_angle: f32,
+    current_angular_velocity: f32,
 }
 
 impl Sail {
@@ -24,6 +27,8 @@ impl Sail {
             right_rope: ButtonControlledRange::new(1.0, right_rope, KeyCode::D),
             sail_width,
             anchor_pos,
+            current_angle: std::f32::consts::PI,
+            current_angular_velocity: 0.0,
         }
     }
 
@@ -31,6 +36,14 @@ impl Sail {
         self.left_rope.update();
         self.right_rope.update();
         self.sail_width.update();
+
+        let dir = self.right_rope.value - self.left_rope.value;
+
+        let (left, right) = self.rope_positions(vec2(0.0, 0.0));
+        let effective_surface = (right.x - left.x).max(0.0);
+
+        self.current_angular_velocity += dir / 36000000.0;
+        self.current_angle += self.current_angular_velocity;
     }
 
     pub(crate) fn draw(&self) {
@@ -78,13 +91,18 @@ impl Sail {
             self.sail_width.value,
         );
         let half_angle = angle / 2.0;
-        let x = half_angle.sin();
-        let y = half_angle.cos();
+        let left = self.current_angle + half_angle;
+        let right = self.current_angle - half_angle;
         (
-            vec2(-x, -y) * self.left_rope.value + anchor,
-            vec2(x, -y) * self.right_rope.value + anchor,
+            angle2vec(left) * self.left_rope.value + anchor,
+            angle2vec(right) * self.right_rope.value + anchor,
         )
     }
+}
+
+fn angle2vec(angle: f32) -> Vec2 {
+    let (x, y) = angle.sin_cos();
+    vec2(x, y)
 }
 
 pub fn draw_line(a: Vec2, b: Vec2, thickness: f32, color: Color) {

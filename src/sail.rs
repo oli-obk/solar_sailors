@@ -37,12 +37,28 @@ impl Sail {
         self.right_rope.update();
         self.sail_width.update();
 
-        let dir = self.right_rope.value - self.left_rope.value;
-
         let (left, right) = self.rope_positions(vec2(0.0, 0.0));
-        let effective_surface = (right.x - left.x).max(0.0);
 
-        self.current_angular_velocity += dir / 36000000.0;
+        let vec = left - right;
+        let angle = vec.y.atan2(vec.x);
+        let cos_angle = angle.cos();
+        let f = self.sail_width.value * cos_angle * cos_angle;
+
+        let dir = self.right_rope.value - self.left_rope.value;
+        let threshold = 0.001;
+        // Only change angular velocity if rope difference is above a threshold.
+        let dir = dir.signum() * (dir.abs() - threshold).max(0.0);
+        // Scale the velocity acceleration to feel nicer
+        let scale = 0.000001;
+
+        self.current_angular_velocity += dir * f * scale;
+
+        // Add some dampening for the velocity so you don't have to manually
+        // control the direction all the time
+        if dir == 0.0 {
+            self.current_angular_velocity *= 0.95;
+        }
+
         self.current_angle += self.current_angular_velocity;
     }
 

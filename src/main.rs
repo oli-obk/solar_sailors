@@ -8,12 +8,11 @@ mod sail;
 mod ship;
 mod stars;
 
-#[macroquad::main("BasicShapes")]
+#[macroquad::main("Solar Sailors")]
 async fn main() {
     let stars = Stars::new(100);
     let mid_x = screen_width() / 2.0;
     let mid_y = screen_height() / 2.0;
-
 
     let sail = Sail::new(100.0, 100.0, 50.0, 10.0, vec2(mid_x, mid_y));
     let mut ship = SpaceShip {

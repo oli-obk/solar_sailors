@@ -11,5 +11,6 @@ pkgs.clangMultiStdenv.mkDerivation rec {
     xorg.libX11
     xorg.libXi
   ];
+  RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
 }
 

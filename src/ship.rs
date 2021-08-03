@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 
-use crate::{ sail::Sail};
+use crate::sail::Sail;
 
 pub(crate) struct SpaceShip {
     pub(crate) pos: Vec2,

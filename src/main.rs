@@ -24,8 +24,8 @@ async fn main() {
     let sail = Sail::new(100.0, 100.0, 50.0, 10.0, vec2(0.0, 0.0));
     let mut ship = SpaceShip {
         sail,
-        len: 50.0,
-        width: 20.0,
+        len: 100.0,
+        width: 50.0,
         pos: Vec2::new(0.0, 0.0),
     };
     loop {

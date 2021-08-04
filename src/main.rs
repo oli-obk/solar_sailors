@@ -18,8 +18,6 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    let cam = Camera2D::from_display_rect(Rect::new(-400.0, -300.0, 800.0, 600.0));
-    set_camera(&cam);
 
     let stars = Stars::new(100, vec2(0.0, 0.0), vec2(400.0, 300.0));
 
@@ -31,6 +29,11 @@ async fn main() {
         pos: Vec2::new(0.0, 0.0),
     };
     loop {
+        let mut cam = Camera2D::default();
+        let scale = (800.0 / screen_width()).max(600.0 / screen_height());
+        cam.zoom.x = 1.0 / (scale * screen_width() / 2.0);
+        cam.zoom.y = -1.0 / (scale * screen_height() / 2.0);
+        set_camera(&cam);
         // Logic
 
         ship.update();

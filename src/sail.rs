@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use macroquad::prelude::*;
 
 use crate::controlled::ButtonControlledRange;
@@ -8,6 +10,7 @@ pub(crate) struct Sail {
     sail_width: ButtonControlledRange,
     anchor_pos: Vec2,
     /// When the sail moves due to different rope lengths, this is all that actually changes.
+    /// 0.0 is straight up.
     current_angle: f32,
     current_angular_velocity: f32,
 }
@@ -27,7 +30,7 @@ impl Sail {
             right_rope: ButtonControlledRange::new(1.0, right_rope, KeyCode::D),
             sail_width,
             anchor_pos,
-            current_angle: std::f32::consts::PI,
+            current_angle: 0.0,
             current_angular_velocity: 0.0,
         }
     }
@@ -117,7 +120,7 @@ impl Sail {
 }
 
 fn angle2vec(angle: f32) -> Vec2 {
-    let (x, y) = angle.sin_cos();
+    let (x, y) = (angle + PI).sin_cos();
     vec2(x, y)
 }
 

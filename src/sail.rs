@@ -5,14 +5,16 @@ use macroquad::prelude::*;
 use crate::controlled::ButtonControlledRange;
 
 pub(crate) struct Sail {
-    left_rope: ButtonControlledRange,
-    right_rope: ButtonControlledRange,
-    sail_width: ButtonControlledRange,
+    pub left_rope: ButtonControlledRange,
+    pub right_rope: ButtonControlledRange,
+    pub sail_width: ButtonControlledRange,
     anchor_pos: Vec2,
     /// When the sail moves due to different rope lengths, this is all that actually changes.
     /// 0.0 is straight up.
-    current_angle: f32,
-    current_angular_velocity: f32,
+    pub current_angle: f32,
+    pub current_angular_velocity: f32,
+    /// The force with which the sail pulls.
+    pub force: f32,
 }
 
 impl Sail {
@@ -32,6 +34,7 @@ impl Sail {
             anchor_pos,
             current_angle: 0.0,
             current_angular_velocity: 0.0,
+            force: 0.0,
         }
     }
 
@@ -47,22 +50,28 @@ impl Sail {
         let cos_angle = angle.cos();
         let f = self.sail_width.value * cos_angle * cos_angle;
 
+        self.force = f;
+
         let dir = self.right_rope.value - self.left_rope.value;
         let threshold = 0.001;
         // Only change angular velocity if rope difference is above a threshold.
         let dir = dir.signum() * (dir.abs() - threshold).max(0.0);
         // Scale the velocity acceleration to feel nicer
-        let scale = 0.000001;
+        let scale = 0.00000001;
 
         self.current_angular_velocity += dir * f * scale;
 
         // Add some dampening for the velocity so you don't have to manually
         // control the direction all the time
-        if dir == 0.0 {
+        if dir == 0.0 || f < 10.0 {
             self.current_angular_velocity *= 0.95;
         }
 
         self.current_angle += self.current_angular_velocity;
+
+        if self.current_angle.abs() > std::f32::consts::FRAC_PI_6 {
+            // Sail uncontrollable
+        }
     }
 
     pub(crate) fn draw(&self) {
@@ -119,7 +128,7 @@ impl Sail {
     }
 }
 
-fn angle2vec(angle: f32) -> Vec2 {
+pub fn angle2vec(angle: f32) -> Vec2 {
     let (x, y) = (angle + PI).sin_cos();
     vec2(x, y)
 }

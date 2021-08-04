@@ -6,13 +6,13 @@ pub struct Stars {
 }
 
 impl Stars {
-    pub fn new(count: usize) -> Self {
+    pub fn new(count: usize, pos: Vec2, size: Vec2) -> Self {
         Self {
             positions: (0..count)
                 .map(|_| {
                     Vec2::new(
-                        f32::gen_range(0.0, screen_width()),
-                        f32::gen_range(0.0, screen_height()),
+                        f32::gen_range(pos.x - size.x, pos.x + size.x),
+                        f32::gen_range(pos.y - size.y, pos.y + size.y),
                     )
                 })
                 .collect(),

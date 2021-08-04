@@ -8,18 +8,27 @@ mod sail;
 mod ship;
 mod stars;
 
-#[macroquad::main("Solar Sailors")]
-async fn main() {
-    let stars = Stars::new(100);
-    let mid_x = screen_width() / 2.0;
-    let mid_y = screen_height() / 2.0;
+fn window_conf() -> Conf {
+    Conf {
+        window_title: "Solar Sailors".to_owned(),
+        window_resizable: true,
+        ..Default::default()
+    }
+}
 
-    let sail = Sail::new(100.0, 100.0, 50.0, 10.0, vec2(mid_x, mid_y));
+#[macroquad::main(window_conf)]
+async fn main() {
+    let cam = Camera2D::from_display_rect(Rect::new(-400.0, -300.0, 800.0, 600.0));
+    set_camera(&cam);
+
+    let stars = Stars::new(100, vec2(0.0, 0.0), vec2(400.0, 300.0));
+
+    let sail = Sail::new(100.0, 100.0, 50.0, 10.0, vec2(0.0, 0.0));
     let mut ship = SpaceShip {
         sail,
         len: 50.0,
         width: 20.0,
-        pos: Vec2::new(mid_x, mid_y),
+        pos: Vec2::new(0.0, 0.0),
     };
     loop {
         // Logic
@@ -33,16 +42,17 @@ async fn main() {
         stars.draw();
         ship.draw();
 
+        let pos = cam.screen_to_world(vec2(0.0, 0.0));
         draw_text(
             "SHIFT: pull/shrink any of the following",
-            20.0,
-            20.0,
+            pos.x + 20.0,
+            pos.y + 20.0,
             30.0,
             DARKGRAY,
         );
-        draw_text("W: sail", 20.0, 40.0, 30.0, DARKGRAY);
-        draw_text("S: left rope", 20.0, 60.0, 30.0, DARKGRAY);
-        draw_text("D: right rope", 20.0, 80.0, 30.0, DARKGRAY);
+        draw_text("W: sail", pos.x + 20.0, pos.y + 40.0, 30.0, DARKGRAY);
+        draw_text("S: left rope", pos.x + 20.0, pos.y + 60.0, 30.0, DARKGRAY);
+        draw_text("D: right rope", pos.x + 20.0, pos.y + 80.0, 30.0, DARKGRAY);
 
         // Let the engine actually do stuff
 

@@ -5,17 +5,17 @@ pub struct Stars {
     positions: Vec<Vec2>,
 }
 
+pub fn rand_in_rect(rect: Rect) -> Vec2 {
+    vec2(
+        f32::gen_range(rect.left(), rect.right()),
+        f32::gen_range(rect.top(), rect.bottom()),
+    )
+}
+
 impl Stars {
-    pub fn new(count: usize, pos: Vec2, size: Vec2) -> Self {
+    pub fn new(count: usize, rect: Rect) -> Self {
         Self {
-            positions: (0..count)
-                .map(|_| {
-                    Vec2::new(
-                        f32::gen_range(pos.x - size.x, pos.x + size.x),
-                        f32::gen_range(pos.y - size.y, pos.y + size.y),
-                    )
-                })
-                .collect(),
+            positions: (0..count).map(|_| rand_in_rect(rect)).collect(),
         }
     }
     pub fn draw(&self) {

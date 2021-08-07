@@ -9,9 +9,13 @@ use sail::Sail;
 use ship::{Gauge, Segment, SpaceShip};
 use stars::Stars;
 
-use crate::ship::{start_next_frame, Position, SharedElement, Weld};
+use crate::{
+    photons::PhotonMap,
+    ship::{start_next_frame, Position, SharedElement, Weld},
+};
 
 mod controlled;
+mod photons;
 mod sail;
 mod ship;
 mod stars;
@@ -26,7 +30,9 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    let stars = Stars::new(100, vec2(0.0, 0.0), vec2(400.0, 300.0));
+    let screen = Rect::new(-400.0, -300.0, 800.0, 600.0);
+    let stars = Stars::new(100, screen);
+    let mut photons = PhotonMap::new(100, screen);
 
     let sail_width = 50.0;
     let sail = Rc::new(RefCell::new(Sail::new(
@@ -86,12 +92,14 @@ async fn main() {
         // Logic
         start_next_frame();
         ship.update();
+        photons.update();
 
         // Drawing
 
         clear_background(BLACK);
 
         stars.draw();
+        photons.draw();
         ship.draw();
 
         let pos = cam.screen_to_world(vec2(0.0, 0.0));

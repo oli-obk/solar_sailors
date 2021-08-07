@@ -63,8 +63,15 @@ impl Element for Segment {
     }
 
     fn draw(&self, pos: Vec2) {
-        draw_poly(pos.x, pos.y, 6, 40.0 / (3.0_f32).sqrt(), 0.0, BLUE);
-        draw_poly_lines(pos.x, pos.y, 6, 40.0 / (3.0_f32).sqrt(), 0.0, 1.0, DARKBLUE);
+        draw_hexagon(
+            pos.x,
+            pos.y,
+            40.0 / (3.0_f32).sqrt(),
+            1.0,
+            false,
+            DARKBLUE,
+            BLUE,
+        );
         self.content.draw(pos);
         for attachement in &self.attachements {
             attachement.draw(pos);

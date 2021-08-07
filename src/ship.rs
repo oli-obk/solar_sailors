@@ -13,13 +13,13 @@ mod segments {
 }
 
 use crate::sail::{angle2vec, Sail};
-pub use segment::Segment;
+pub use segment::*;
 pub use segments::*;
 
 pub(crate) struct SpaceShip {
     pub(crate) pos: Vec2,
     pub(crate) sail: Rc<RefCell<Sail>>,
-    pub(crate) root: Segment,
+    pub(crate) root: Rc<SharedElement<Segment>>,
 }
 
 impl SpaceShip {
@@ -30,21 +30,6 @@ impl SpaceShip {
     pub(crate) fn draw(&self) {
         self.root.draw(self.pos + vec2(0.0, 20.0));
         self.sail.borrow().draw();
-
-        // Spaceship
-        let mid = self.pos;
-
-        let diff = self.sail.borrow().right_rope.value - self.sail.borrow().left_rope.value;
-        // Gauges
-        draw_gauge(
-            mid + vec2(0.0, 70.0),
-            20.0,
-            [-self.sail.borrow().current_angle, diff / 10.0 + PI],
-            -FRAC_PI_2,
-            -FRAC_PI_2,
-            FRAC_PI_2,
-            FRAC_PI_2,
-        );
     }
 }
 

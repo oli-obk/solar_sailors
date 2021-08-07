@@ -5,6 +5,7 @@ pkgs.mkShell rec {
   name = "rustc";
   buildInputs = with pkgs; [
     cargo
+    rustfmt
     pkg-config
     alsaLib
     libGL

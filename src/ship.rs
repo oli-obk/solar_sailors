@@ -48,7 +48,7 @@ fn draw_gauge(
     draw_gauge_meter(pos, start, size, WHITE);
     draw_gauge_meter(pos, end, size, WHITE);
     let colors = [RED, GREEN, PINK, YELLOW];
-    for (i, (val, color)) in val.into_iter().zip(colors).enumerate() {
+    for (i, (val, &color)) in val.into_iter().zip(&colors).enumerate() {
         let percent = (val - min) / (max - min);
         let percent_angle = end - range * percent;
         draw_gauge_meter(pos, percent_angle, size * 0.75, color);

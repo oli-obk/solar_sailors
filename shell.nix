@@ -1,10 +1,10 @@
 let
   pkgs = import <nixpkgs> {}; 
 in
-pkgs.clangMultiStdenv.mkDerivation rec {
+pkgs.mkShell rec {
   name = "rustc";
   buildInputs = with pkgs; [
-    rustup
+    cargo
     pkg-config
     alsaLib
     libGL

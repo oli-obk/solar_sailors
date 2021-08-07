@@ -1,58 +1,57 @@
-use std::f32::consts::{FRAC_PI_2, FRAC_PI_3, PI};
+use std::{
+    cell::RefCell,
+    f32::consts::{FRAC_PI_2, PI},
+    rc::Rc,
+};
 
 use macroquad::prelude::*;
 
 mod segment;
+mod segments {
+    mod gauge;
+    pub use gauge::Gauge;
+}
 
 use crate::sail::{angle2vec, Sail};
-
-use self::segment::Segment;
+pub use segment::Segment;
+pub use segments::*;
 
 pub(crate) struct SpaceShip {
     pub(crate) pos: Vec2,
-    pub(crate) sail: Sail,
+    pub(crate) sail: Rc<RefCell<Sail>>,
     pub(crate) root: Segment,
 }
 
 impl SpaceShip {
     pub(crate) fn update(&mut self) {
-        self.sail.update();
+        self.sail.borrow_mut().update();
         self.root.update();
     }
     pub(crate) fn draw(&self) {
         self.root.draw(self.pos + vec2(0.0, 20.0));
-        self.sail.draw();
+        self.sail.borrow().draw();
 
         // Spaceship
         let mid = self.pos;
 
-        let diff = self.sail.right_rope.value - self.sail.left_rope.value;
+        let diff = self.sail.borrow().right_rope.value - self.sail.borrow().left_rope.value;
         // Gauges
-        draw_gauge(
-            mid + vec2(0.0, 30.0),
-            20.0,
-            [-self.sail.current_angle, diff / 10.0 + PI],
-            -FRAC_PI_2,
-            -FRAC_PI_2,
-            FRAC_PI_2,
-            FRAC_PI_2,
-        );
         draw_gauge(
             mid + vec2(0.0, 70.0),
             20.0,
-            [self.sail.force],
-            0.0,
-            -FRAC_PI_3 * 2.0,
-            self.sail.sail_width.max,
-            FRAC_PI_3 * 2.0,
+            [-self.sail.borrow().current_angle, diff / 10.0 + PI],
+            -FRAC_PI_2,
+            -FRAC_PI_2,
+            FRAC_PI_2,
+            FRAC_PI_2,
         );
     }
 }
 
-fn draw_gauge<const N: usize>(
+fn draw_gauge(
     pos: Vec2,
     size: f32,
-    val: [f32; N],
+    val: impl IntoIterator<Item = f32>,
     min: f32,
     min_handle_pos: f32,
     max: f32,
@@ -64,7 +63,7 @@ fn draw_gauge<const N: usize>(
     draw_gauge_meter(pos, start, size, WHITE);
     draw_gauge_meter(pos, end, size, WHITE);
     let colors = [RED, GREEN, PINK, YELLOW];
-    for (i, (val, color)) in val.iter().zip(colors).enumerate() {
+    for (i, (val, color)) in val.into_iter().zip(colors).enumerate() {
         let percent = (val - min) / (max - min);
         let percent_angle = end - range * percent;
         draw_gauge_meter(pos, percent_angle, size * 0.75, color);

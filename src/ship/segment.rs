@@ -2,7 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use macroquad::prelude::*;
 
-trait Element {
+pub trait Element {
     fn update(&mut self);
     fn draw(&self, pos: Vec2);
 }
@@ -41,13 +41,13 @@ impl<T: Element + ?Sized> Element for Box<T> {
     }
 }
 
-trait Content: Element {}
-trait Attachement: Element {}
+pub trait Content: Element {}
+pub trait Attachement: Element {}
 
 #[derive(Default)]
 pub struct Segment {
-    content: Option<Box<dyn Content>>,
-    attachements: [Option<Rc<RefCell<dyn Attachement>>>; 6],
+    pub content: Option<Box<dyn Content>>,
+    pub attachements: [Option<Rc<RefCell<dyn Attachement>>>; 6],
 }
 
 impl Segment {

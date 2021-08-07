@@ -18,15 +18,13 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-
     let stars = Stars::new(100, vec2(0.0, 0.0), vec2(400.0, 300.0));
 
     let sail = Sail::new(100.0, 100.0, 50.0, 10.0, vec2(0.0, 0.0));
     let mut ship = SpaceShip {
         sail,
-        len: 100.0,
-        width: 50.0,
         pos: Vec2::new(0.0, 0.0),
+        root: Default::default(),
     };
     loop {
         let mut cam = Camera2D::default();

@@ -2,25 +2,29 @@ use std::f32::consts::{FRAC_PI_2, FRAC_PI_3, PI};
 
 use macroquad::prelude::*;
 
+mod segment;
+
 use crate::sail::{angle2vec, Sail};
+
+use self::segment::Segment;
 
 pub(crate) struct SpaceShip {
     pub(crate) pos: Vec2,
     pub(crate) sail: Sail,
-    pub(crate) width: f32,
-    pub(crate) len: f32,
+    pub(crate) root: Segment,
 }
 
 impl SpaceShip {
     pub(crate) fn update(&mut self) {
         self.sail.update();
+        self.root.update();
     }
     pub(crate) fn draw(&self) {
+        self.root.draw(self.pos + vec2(0.0, 20.0));
         self.sail.draw();
 
         // Spaceship
         let mid = self.pos;
-        draw_rectangle(mid.x - self.width / 2.0, mid.y, self.width, self.len, BLUE);
 
         let diff = self.sail.right_rope.value - self.sail.left_rope.value;
         // Gauges

@@ -1,8 +1,4 @@
-use std::{
-    cell::RefCell,
-    f32::consts::{FRAC_PI_2, PI},
-    rc::Rc,
-};
+use std::{cell::RefCell, rc::Rc};
 
 use macroquad::prelude::*;
 

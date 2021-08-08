@@ -17,6 +17,8 @@ pub(crate) struct Sail {
     pub force: f32,
 }
 
+const SIDE: f32 = 5.0;
+
 impl Sail {
     pub(crate) fn new(
         left_rope: f32,
@@ -43,7 +45,11 @@ impl Sail {
         self.right_rope.update();
         self.sail_width.update();
 
-        let (left, right) = self.rope_positions(vec2(0.0, 0.0));
+        let (left, right) = self.rope_positions();
+        // Shift the positions into an anchor-centric system, since we
+        // don't care about the real position, but only about the forces.
+        let left = left + vec2(0.0, SIDE);
+        let right = right + vec2(0.0, SIDE);
 
         let vec = left - right;
         let angle = vec.y.atan2(vec.x);
@@ -76,43 +82,43 @@ impl Sail {
 
     pub(crate) fn draw(&self) {
         let anchor = self.anchor_pos;
-        let side = 5.0;
         // Draw the sail anchor
         {
             let left = anchor[0] - self.sail_width.min / 2.0;
-            let top = anchor[1] - side;
+            let top = anchor[1] - SIDE;
             draw_rectangle(
-                left - side,
+                left - SIDE,
                 top,
-                self.sail_width.min + side * 2.0,
-                side,
+                self.sail_width.min + SIDE * 2.0,
+                SIDE,
                 BLUE,
             );
             draw_triangle(
-                vec2(left - side, top),
-                vec2(left - side, top - side),
+                vec2(left - SIDE, top),
+                vec2(left - SIDE, top - SIDE),
                 vec2(left, top),
                 BLUE,
             );
             let right = anchor[0] + self.sail_width.min / 2.0;
             draw_triangle(
-                vec2(right + side, top),
-                vec2(right + side, top - side),
+                vec2(right + SIDE, top),
+                vec2(right + SIDE, top - SIDE),
                 vec2(right, top),
                 BLUE,
             );
         }
-        let anchor = anchor - vec2(0.0, side);
-        let (left, right) = self.rope_positions(anchor);
+        let (left, right) = self.rope_positions();
         // Sail
         draw_line(left, right, 1.0, GOLD);
         // Ropes
+        let anchor = self.anchor_pos - vec2(0.0, SIDE);
         draw_line(anchor, left, 1.0, GRAY);
         draw_line(anchor, right, 1.0, GRAY);
     }
 
     /// Compute the position of the sail corners
-    fn rope_positions(&self, anchor: Vec2) -> (Vec2, Vec2) {
+    pub fn rope_positions(&self) -> (Vec2, Vec2) {
+        let anchor = self.anchor_pos - vec2(0.0, SIDE);
         let angle = rope_angle(
             self.left_rope.value,
             self.right_rope.value,

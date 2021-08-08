@@ -16,6 +16,15 @@ impl PhotonMap {
                 dir: vec2(0.0, -SPEED),
             })
             .collect();
+        let test = intersect(
+            (vec2(2.0, 5.0), vec2(4.0, -5.0)),
+            (vec2(1.0, 1.0), vec2(6.0, 1.0)),
+        );
+        assert_eq!(
+            test.map(|f| f.to_string()),
+            Some("[4.705882, 1.6176472]".to_string())
+        );
+
         Self { photons, rect }
     }
 }
@@ -25,11 +34,34 @@ struct Photon {
     dir: Vec2,
 }
 
-const SPEED: f32 = 5.0;
+const SPEED: f32 = 2.0;
+
+/// Find the intersection point of two lines specified by its starting and end point, if there is one.
+fn intersect(line1: (Vec2, Vec2), line2: (Vec2, Vec2)) -> Option<Vec2> {
+    let starting_point_diff = line2.0 - line1.0;
+    let line1_intersect_factor = starting_point_diff.perp_dot(line2.1) / line1.1.perp_dot(line2.1);
+    let pos = line1.0 + line1.1 * line1_intersect_factor;
+    let line2_intersect_vec = (pos - line2.0) / line2.1;
+    if line1_intersect_factor >= 0.0
+        && line1_intersect_factor <= 1.0
+        // FIXME: Why 2.0???? otherwise only the left half of the sail is hit.
+        && line2_intersect_vec.length_squared() < 2.0
+        && line2_intersect_vec.x >= 0.0
+        && line2_intersect_vec.y >= 0.0
+    {
+        Some(pos)
+    } else {
+        None
+    }
+}
 
 impl PhotonMap {
-    pub fn update(&mut self) {
+    pub fn update(&mut self, (l, r): (Vec2, Vec2)) {
         for photon in &mut self.photons {
+            if let Some(_collision) = intersect((photon.pos, photon.dir), (l, r - l)) {
+                let sail_dir = (r - l).normalize();
+                photon.dir = -photon.dir - 2.0 * (-photon.dir).dot(sail_dir) * sail_dir;
+            }
             photon.pos += photon.dir;
             if !self.rect.contains(photon.pos) {
                 photon.pos = vec2(

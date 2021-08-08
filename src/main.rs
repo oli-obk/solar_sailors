@@ -92,7 +92,7 @@ async fn main() {
         // Logic
         start_next_frame();
         ship.update();
-        photons.update();
+        photons.update(ship.sail.borrow().rope_positions());
 
         // Drawing
 

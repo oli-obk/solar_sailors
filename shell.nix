@@ -5,6 +5,7 @@ pkgs.mkShell rec {
   name = "rustc";
   buildInputs = with pkgs; [
     cargo
+    rustc
     rustfmt
     pkg-config
     alsaLib

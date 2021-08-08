@@ -59,11 +59,15 @@ fn intersect(line1: (Vec2, Vec2), line2: (Vec2, Vec2)) -> Option<Vec2> {
     }
 }
 
+const LENGTH: f32 = 10.0;
+
 impl PhotonMap {
     pub fn update(&mut self, (l, r): (Vec2, Vec2)) {
         for photon in &mut self.photons {
-            if let Some(_collision) = intersect((photon.pos, photon.dir), (l, r - l)) {
+            let len_vec = photon.dir.normalize() * LENGTH;
+            if let Some(collision) = intersect((photon.pos, len_vec), (l, r - l)) {
                 let sail_dir = (r - l).normalize();
+                photon.pos = collision;
                 photon.dir = -photon.dir - 2.0 * (-photon.dir).dot(sail_dir) * sail_dir;
             }
             photon.pos += photon.dir;
@@ -82,8 +86,8 @@ impl PhotonMap {
             draw_line(
                 photon.pos.x,
                 photon.pos.y,
-                photon.pos.x + photon.dir.x * 10.0 / SPEED,
-                photon.pos.y + photon.dir.y * 10.0 / SPEED,
+                photon.pos.x + photon.dir.x * LENGTH / SPEED,
+                photon.pos.y + photon.dir.y * LENGTH / SPEED,
                 1.0,
                 GOLD,
             );

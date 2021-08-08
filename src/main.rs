@@ -89,13 +89,13 @@ async fn main() {
         cam.zoom.x = 1.0 / (scale * screen_width() / 2.0);
         cam.zoom.y = -1.0 / (scale * screen_height() / 2.0);
         set_camera(&cam);
+
         // Logic
         start_next_frame();
         ship.update();
         photons.update(ship.sail.borrow().rope_positions());
 
         // Drawing
-
         clear_background(BLACK);
 
         stars.draw();

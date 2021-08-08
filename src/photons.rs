@@ -9,13 +9,17 @@ pub struct PhotonMap {
 }
 
 impl PhotonMap {
-    pub fn new(count: usize, rect: Rect) -> Self {
+    pub fn new(count: usize, mut rect: Rect) -> Self {
         let photons = (0..count)
             .map(|_| Photon {
                 pos: rand_in_rect(rect),
                 dir: vec2(0.0, -SPEED),
             })
             .collect();
+        rect.x -= SPEED;
+        rect.y -= SPEED;
+        rect.w += SPEED;
+        rect.h += SPEED;
         let test = intersect(
             (vec2(2.0, 5.0), vec2(4.0, -5.0)),
             (vec2(1.0, 1.0), vec2(6.0, 1.0)),

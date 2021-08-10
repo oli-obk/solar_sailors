@@ -1,11 +1,9 @@
 [package]
-name = "solar_sailors"
+name = "orbital"
 version = "0.1.0"
-authors = ["Oliver Scherer <github@oli-obk.de>"]
+authors = ["Oli Scherer <github35764891676564198441@oli-obk.de>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-macroquad = "0.3"
-orbital = {path = "orbital", version = "0.1"}

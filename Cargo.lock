@@ -773,6 +773,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "orbital"
+version = "0.1.0"
+
+[[package]]
 name = "parking_lot"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1013,6 +1017,7 @@ name = "solar_sailors"
 version = "0.1.0"
 dependencies = [
  "macroquad",
+ "orbital",
 ]
 
 [[package]]

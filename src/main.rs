@@ -1,9 +1,4 @@
-use std::{
-    cell::RefCell,
-    collections::HashMap,
-    f32::consts::{FRAC_PI_2, FRAC_PI_3, PI},
-    rc::Rc,
-};
+use std::{cell::RefCell, collections::HashMap, f32::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_4, PI}, rc::Rc};
 
 use macroquad::prelude::*;
 use sail::Sail;
@@ -13,6 +8,7 @@ use stars::Stars;
 use crate::photons::PhotonMap;
 
 mod controlled;
+mod orbits;
 mod photons;
 mod sail;
 mod ship;
@@ -30,6 +26,8 @@ fn window_conf() -> Conf {
 async fn main() {
     let screen = Rect::new(-400.0, -300.0, 800.0, 600.0);
     let stars = Stars::new(100, screen);
+    let mut orbits = orbits::Orbits::new();
+    orbits.insert(200.0, FRAC_PI_4);
     let mut photons = PhotonMap::new(100, screen);
 
     let sail_width = 50.0;
@@ -82,38 +80,82 @@ async fn main() {
             attachements: Default::default(),
         },
     );
+
+    let mut window = GameWindow::Orbit;
+
     loop {
+        // Logic
+        ship.update();
+        photons.update(ship.sail.borrow().rope_positions());
+        orbits.update();
+
+        if is_key_pressed(KeyCode::M) {
+            window = match window {
+                GameWindow::Ship => GameWindow::Orbit,
+                GameWindow::Orbit => GameWindow::Ship,
+            };
+        }
+
         let mut cam = Camera2D::default();
         let scale = (800.0 / screen_width()).max(600.0 / screen_height());
         cam.zoom.x = 1.0 / (scale * screen_width() / 2.0);
         cam.zoom.y = -1.0 / (scale * screen_height() / 2.0);
         set_camera(&cam);
 
-        // Logic
-        ship.update();
-        photons.update(ship.sail.borrow().rope_positions());
-
         // Drawing
         clear_background(BLACK);
 
-        stars.draw();
-        photons.draw();
-        ship.draw();
+        match window {
+            GameWindow::Ship => {
+                stars.draw();
+                photons.draw();
+                ship.draw();
 
-        let pos = cam.screen_to_world(vec2(0.0, 0.0));
-        draw_text(
-            "SHIFT: pull/shrink any of the following",
-            pos.x + 20.0,
-            pos.y + 20.0,
-            30.0,
-            DARKGRAY,
-        );
-        draw_text("W: sail", pos.x + 20.0, pos.y + 40.0, 30.0, DARKGRAY);
-        draw_text("S: left rope", pos.x + 20.0, pos.y + 60.0, 30.0, DARKGRAY);
-        draw_text("D: right rope", pos.x + 20.0, pos.y + 80.0, 30.0, DARKGRAY);
+                let pos = cam.screen_to_world(vec2(0.0, 0.0));
+                draw_text("M: view orbit", pos.x + 20.0, pos.y, 30.0, DARKGRAY);
+                draw_text(
+                    "hold SHIFT with any of the following for inverse effect",
+                    pos.x + 20.0,
+                    pos.y + 40.0,
+                    30.0,
+                    DARKGRAY,
+                );
+                draw_text("W: expand sail", pos.x + 20.0, pos.y + 60.0, 30.0, DARKGRAY);
+                draw_text(
+                    "S: let out left rope",
+                    pos.x + 20.0,
+                    pos.y + 80.0,
+                    30.0,
+                    DARKGRAY,
+                );
+                draw_text(
+                    "D: let out right rope",
+                    pos.x + 20.0,
+                    pos.y + 100.0,
+                    30.0,
+                    DARKGRAY,
+                );
+            }
+            GameWindow::Orbit => {
+                orbits.draw();
+                let pos = cam.screen_to_world(vec2(0.0, 0.0));
+                draw_text(
+                    "M: return to ship",
+                    pos.x + 20.0,
+                    pos.y + 20.0,
+                    30.0,
+                    DARKGRAY,
+                );
+            }
+        }
 
         // Let the engine actually do stuff
 
         next_frame().await
     }
+}
+
+enum GameWindow {
+    Ship,
+    Orbit,
 }

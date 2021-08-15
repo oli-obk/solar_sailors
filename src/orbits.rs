@@ -24,16 +24,13 @@ impl Orbits {
     pub fn new() -> Self {
         Self::default()
     }
-    pub fn insert(&mut self, radius: f32, angle: f32) -> ObjectId {
+    pub fn insert(&mut self, angle: f32, orbit: orbital::Orbit) -> ObjectId {
         let id = self.next_id;
         self.next_id += 1;
         self.objects.insert(
             id,
             Object {
-                orbit: Orbit {
-                    angle,
-                    orbit: orbital::Orbit::circular(radius),
-                },
+                orbit: Orbit { angle, orbit },
             },
         );
         ObjectId(id)

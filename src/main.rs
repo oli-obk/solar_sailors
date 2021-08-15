@@ -1,4 +1,9 @@
-use std::{cell::RefCell, collections::HashMap, f32::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_4, PI}, rc::Rc};
+use std::{
+    cell::RefCell,
+    collections::HashMap,
+    f32::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_4, PI},
+    rc::Rc,
+};
 
 use macroquad::prelude::*;
 use sail::Sail;
@@ -27,7 +32,14 @@ async fn main() {
     let screen = Rect::new(-400.0, -300.0, 800.0, 600.0);
     let stars = Stars::new(100, screen);
     let mut orbits = orbits::Orbits::new();
-    orbits.insert(200.0, FRAC_PI_4);
+    orbits.insert(FRAC_PI_4, orbital::Orbit::circular(200.0));
+    orbits.insert(
+        0.0,
+        orbital::Orbit {
+            p: 200.0,
+            epsilon: 0.5,
+        },
+    );
     let mut photons = PhotonMap::new(100, screen);
 
     let sail_width = 50.0;

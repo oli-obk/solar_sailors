@@ -20,6 +20,8 @@ pub struct Orbits {
 
 pub struct ObjectId(usize);
 
+const MOON_SIZE: f32 = 20.0;
+
 impl Orbits {
     pub fn new() -> Self {
         Self::default()
@@ -41,7 +43,7 @@ impl Orbits {
     }
     pub fn draw(&self) {
         for object in self.objects.values() {
-            let angle = object.orbit.orbit.angle_at(10.0, self.t);
+            let angle = object.orbit.orbit.angle_at(1.0, self.t);
             let radius = object.orbit.orbit.r(angle);
             let system_angle = angle + object.orbit.angle;
             let (y, x) = system_angle.sin_cos();
@@ -70,7 +72,7 @@ impl Orbits {
                 y = new_y;
             }
         }
-        draw_circle(0.0, 0.0, 50.0, GRAY);
-        draw_rectangle(-50.0, 0.0, 100.0, -1000.0, Color::new(0.0, 0.0, 0.0, 0.5));
+        draw_circle(0.0, 0.0, MOON_SIZE, GRAY);
+        draw_rectangle(-MOON_SIZE, 0.0, MOON_SIZE*2.0, -1000.0, Color::new(0.0, 0.0, 0.0, 0.5));
     }
 }

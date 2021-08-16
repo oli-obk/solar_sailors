@@ -36,8 +36,8 @@ async fn main() {
     orbits.insert(
         0.0,
         orbital::Orbit {
-            p: 200.0,
-            epsilon: 0.5,
+            p: 50.0,
+            epsilon: 0.8,
         },
     );
     let mut photons = PhotonMap::new(100, screen);

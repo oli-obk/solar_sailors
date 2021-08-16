@@ -55,17 +55,18 @@ impl Orbit {
     /// in the 1e-6 range. Formula from https://space.stackexchange.com/questions/8911/determining-orbital-position-at-a-future-point-in-time
     pub fn eccentric_anomaly(&self, central_mass: f32, time: f32) -> f32 {
         let mean_motion = self.mean_motion(central_mass);
-        let time_in_current_orbit = (time % (TAU / mean_motion))
+        let time_in_current_orbit = time % (TAU / mean_motion);
         let mean_anomaly = mean_motion * time_in_current_orbit;
         let mut e = mean_anomaly;
         let mut i = 0;
         loop {
             let delta =
                 (e - self.epsilon * e.sin() - mean_anomaly) / (1.0 - self.epsilon * e.cos());
-            if i >= 10 {
+            if i >= 30 {
                 panic!("could not converge: {}, {}", e, delta)
             }
-            e -= delta;
+            // HACK: half the rate of convergence means we actually converge for large epsilon
+            e -= delta * 0.5;
             if delta.abs() < 1e-6 {
                 return e;
             }

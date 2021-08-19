@@ -134,7 +134,7 @@ async fn main() {
                 );
                 draw_text("W: expand sail", pos.x + 20.0, pos.y + 60.0, 30.0, DARKGRAY);
                 draw_text(
-                    "S: let out left rope",
+                    "A: let out left rope",
                     pos.x + 20.0,
                     pos.y + 80.0,
                     30.0,

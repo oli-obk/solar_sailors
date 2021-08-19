@@ -93,7 +93,7 @@ async fn main() {
         },
     );
 
-    let mut window = GameWindow::Orbit;
+    let mut window = GameWindow::Ship;
 
     loop {
         // Logic

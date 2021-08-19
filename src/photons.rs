@@ -1,14 +1,12 @@
-use std::cell::Cell;
-use std::rc::Weak;
-
 use macroquad::prelude::*;
 use macroquad::rand::RandomRange;
 
+use crate::datastructures::Reader;
 use crate::stars::rand_in_rect;
 
 pub struct PhotonMap {
     photons: Vec<Photon>,
-    pub sails: Vec<Weak<Cell<(Vec2, Vec2)>>>,
+    pub sails: Vec<Reader<(Vec2, Vec2)>>,
     rect: Rect,
 }
 
@@ -74,7 +72,7 @@ impl PhotonMap {
         for photon in &mut self.photons {
             let len_vec = photon.dir.normalize() * LENGTH;
             for sail in &self.sails {
-                let (l, r) = sail.upgrade().unwrap().get();
+                let (l, r) = sail.get().unwrap();
                 if let Some(collision) = intersect((photon.pos, len_vec), (l, r - l)) {
                     let sail_dir = (r - l).normalize();
                     photon.pos = collision;

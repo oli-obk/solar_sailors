@@ -1,8 +1,11 @@
-use std::{cell::{Cell, RefCell}, f32::consts::PI, rc::{Rc, Weak}};
+use std::{cell::RefCell, f32::consts::PI, rc::Rc};
 
 use macroquad::prelude::*;
 
-use crate::controlled::ButtonControlledRange;
+use crate::{
+    controlled::ButtonControlledRange,
+    datastructures::{Reader, Sensor},
+};
 
 pub(crate) struct Sail {
     pub left_rope: ButtonControlledRange,
@@ -10,7 +13,7 @@ pub(crate) struct Sail {
     pub sail_width: ButtonControlledRange,
     anchor_pos: Vec2,
     /// Computed in the update phase, processed by draw
-    rope_positions: Rc<Cell<(Vec2, Vec2)>>,
+    rope_positions: Sensor<(Vec2, Vec2)>,
     /// When the sail moves due to different rope lengths, this is all that actually changes.
     /// 0.0 is straight up.
     pub current_angle: f32,
@@ -28,11 +31,10 @@ impl Sail {
         sail_width: f32,
         min_sail_width: f32,
         anchor_pos: Vec2,
-    ) -> (Rc<RefCell<Self>>, Weak<Cell<(Vec2, Vec2)>>) {
+    ) -> (Rc<RefCell<Self>>, Reader<(Vec2, Vec2)>) {
         let sail_width = ButtonControlledRange::new(min_sail_width, sail_width, KeyCode::W);
 
-        let rope_positions: Rc<Cell<(_, _)>> = Default::default();
-        let r2 = Rc::downgrade(&rope_positions);
+        let (rope_positions, r2) = Sensor::new(Default::default());
 
         (
             Rc::new(RefCell::new(Self {

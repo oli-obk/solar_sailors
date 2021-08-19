@@ -14,6 +14,7 @@ use crate::photons::PhotonMap;
 mod controlled;
 mod orbits;
 mod photons;
+mod datastructures;
 mod sail;
 mod ship;
 mod stars;

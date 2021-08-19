@@ -4,7 +4,7 @@ pub(crate) struct ButtonControlledRange {
     pub min: f32,
     pub value: f32,
     pub max: f32,
-    pub speed: f32,
+    speed: f32,
     keycode: KeyCode,
 }
 

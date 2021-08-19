@@ -1,8 +1,4 @@
-use std::{
-    cell::RefCell,
-    f32::consts::PI,
-    rc::{Rc, Weak},
-};
+use std::{cell::{Cell, RefCell}, f32::consts::PI, rc::{Rc, Weak}};
 
 use macroquad::prelude::*;
 
@@ -14,7 +10,7 @@ pub(crate) struct Sail {
     pub sail_width: ButtonControlledRange,
     anchor_pos: Vec2,
     /// Computed in the update phase, processed by draw
-    rope_positions: Rc<RefCell<(Vec2, Vec2)>>,
+    rope_positions: Rc<Cell<(Vec2, Vec2)>>,
     /// When the sail moves due to different rope lengths, this is all that actually changes.
     /// 0.0 is straight up.
     pub current_angle: f32,
@@ -32,10 +28,10 @@ impl Sail {
         sail_width: f32,
         min_sail_width: f32,
         anchor_pos: Vec2,
-    ) -> (Rc<RefCell<Self>>, Weak<RefCell<(Vec2, Vec2)>>) {
+    ) -> (Rc<RefCell<Self>>, Weak<Cell<(Vec2, Vec2)>>) {
         let sail_width = ButtonControlledRange::new(min_sail_width, sail_width, KeyCode::W);
 
-        let rope_positions: Rc<RefCell<(_, _)>> = Default::default();
+        let rope_positions: Rc<Cell<(_, _)>> = Default::default();
         let r2 = Rc::downgrade(&rope_positions);
 
         (
@@ -59,7 +55,7 @@ impl Sail {
         self.sail_width.update();
 
         let (left, right) = self.rope_positions();
-        *self.rope_positions.borrow_mut() = (left, right);
+        self.rope_positions.set((left, right));
         // Shift the positions into an anchor-centric system, since we
         // don't care about the real position, but only about the forces.
         let left = left + vec2(0.0, SIDE);
@@ -121,7 +117,7 @@ impl Sail {
                 BLUE,
             );
         }
-        let (left, right) = *self.rope_positions.borrow();
+        let (left, right) = self.rope_positions.get();
         let offset = vec2(0.0, SIDE);
         let left = left - offset;
         let right = right - offset;

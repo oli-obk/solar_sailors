@@ -9,6 +9,8 @@ pub(crate) struct Sail {
     pub right_rope: ButtonControlledRange,
     pub sail_width: ButtonControlledRange,
     anchor_pos: Vec2,
+    /// Computed in the update phase, processed by draw
+    rope_positions: (Vec2, Vec2),
     /// When the sail moves due to different rope lengths, this is all that actually changes.
     /// 0.0 is straight up.
     pub current_angle: f32,
@@ -37,6 +39,7 @@ impl Sail {
             current_angle: 0.0,
             current_angular_velocity: 0.0,
             force: 0.0,
+            rope_positions: Default::default(),
         }
     }
 
@@ -46,6 +49,7 @@ impl Sail {
         self.sail_width.update();
 
         let (left, right) = self.rope_positions();
+        self.rope_positions = (left, right);
         // Shift the positions into an anchor-centric system, since we
         // don't care about the real position, but only about the forces.
         let left = left + vec2(0.0, SIDE);
@@ -107,18 +111,20 @@ impl Sail {
                 BLUE,
             );
         }
-        let (left, right) = self.rope_positions();
+        let (left, right) = self.rope_positions;
+        let offset = vec2(0.0, SIDE);
+        let left = left - offset;
+        let right = right - offset;
+        let anchor = self.anchor_pos - offset;
         // Sail
         draw_line(left, right, 1.0, GOLD);
         // Ropes
-        let anchor = self.anchor_pos - vec2(0.0, SIDE);
         draw_line(anchor, left, 1.0, GRAY);
         draw_line(anchor, right, 1.0, GRAY);
     }
 
     /// Compute the position of the sail corners
     pub fn rope_positions(&self) -> (Vec2, Vec2) {
-        let anchor = self.anchor_pos - vec2(0.0, SIDE);
         let angle = rope_angle(
             self.left_rope.value,
             self.right_rope.value,
@@ -128,8 +134,8 @@ impl Sail {
         let left = self.current_angle + half_angle;
         let right = self.current_angle - half_angle;
         (
-            angle2vec(left) * self.left_rope.value + anchor,
-            angle2vec(right) * self.right_rope.value + anchor,
+            angle2vec(left) * self.left_rope.value,
+            angle2vec(right) * self.right_rope.value,
         )
     }
 }

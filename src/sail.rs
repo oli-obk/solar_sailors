@@ -16,7 +16,7 @@ pub(crate) struct Sail {
     rope_positions: Sensor<(Vec2, Vec2)>,
     /// When the sail moves due to different rope lengths, this is all that actually changes.
     /// 0.0 is straight up.
-    pub current_angle: f32,
+    current_angle: Sensor<f32>,
     pub current_angular_velocity: f32,
     /// The force with which the sail pulls.
     force: Sensor<f32>,
@@ -31,24 +31,31 @@ impl Sail {
         sail_width: f32,
         min_sail_width: f32,
         anchor_pos: Vec2,
-    ) -> (Rc<RefCell<Self>>, Reader<(Vec2, Vec2)>, Reader<f32>) {
+    ) -> (
+        Rc<RefCell<Self>>,
+        Reader<(Vec2, Vec2)>,
+        Reader<f32>,
+        Reader<f32>,
+    ) {
         let sail_width = ButtonControlledRange::new(min_sail_width, sail_width, KeyCode::W);
 
         let (rope_positions, r2) = Sensor::new(Default::default());
         let (force, f) = Sensor::new(0.0);
+        let (current_angle, cur_a) = Sensor::new(0.0);
         (
             Rc::new(RefCell::new(Self {
                 left_rope: ButtonControlledRange::new(1.0, left_rope, KeyCode::A),
                 right_rope: ButtonControlledRange::new(1.0, right_rope, KeyCode::D),
                 sail_width,
                 anchor_pos,
-                current_angle: 0.0,
+                current_angle,
                 current_angular_velocity: 0.0,
                 force,
                 rope_positions,
             })),
             r2,
             f,
+            cur_a,
         )
     }
 
@@ -86,9 +93,11 @@ impl Sail {
             self.current_angular_velocity *= 0.95;
         }
 
-        self.current_angle += self.current_angular_velocity;
+        let a = self
+            .current_angle
+            .update(|a| a + self.current_angular_velocity);
 
-        if self.current_angle.abs() > std::f32::consts::FRAC_PI_6 {
+        if a.abs() > std::f32::consts::FRAC_PI_6 {
             // Sail uncontrollable
         }
     }
@@ -140,8 +149,9 @@ impl Sail {
             self.sail_width.value,
         );
         let half_angle = angle / 2.0;
-        let left = self.current_angle + half_angle;
-        let right = self.current_angle - half_angle;
+        let a = self.current_angle.get();
+        let left = a + half_angle;
+        let right = a - half_angle;
         (
             angle2vec(left) * self.left_rope.value,
             angle2vec(right) * self.right_rope.value,

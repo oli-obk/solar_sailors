@@ -16,6 +16,12 @@ impl<T: Copy> Sensor<T> {
     pub fn set(&self, val: T) {
         self.input.set(val);
     }
+    pub fn update(&self, f: impl FnOnce(T) -> T) -> T {
+        let old = self.get();
+        let new = f(old);
+        self.set(new);
+        new
+    }
     pub fn get(&self) -> T {
         self.input.get()
     }

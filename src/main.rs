@@ -43,10 +43,10 @@ async fn main() {
     let mut photons = PhotonMap::new(100, screen);
 
     let sail_width = 50.0;
-    let (sail, rope_positions, force) = Sail::new(100.0, 100.0, sail_width, 10.0, vec2(0.0, 0.0));
+    let (sail, rope_positions, force, current_angle) =
+        Sail::new(100.0, 100.0, sail_width, 10.0, vec2(0.0, 0.0));
     photons.sails.push(rope_positions);
     let sail_ref = Rc::downgrade(&sail);
-    let sail_ref2 = sail_ref.clone();
     let sail_ref3 = sail_ref.clone();
     let mut ship = SpaceShip {
         sail,
@@ -69,7 +69,7 @@ async fn main() {
         Segment {
             content: Some(Box::new(Gauge::new(
                 vec![
-                    Box::new(move || sail_ref2.upgrade().map(|sail| -sail.borrow().current_angle))
+                    Box::new(move || current_angle.get().map(|a| -a))
                         as Box<dyn Fn() -> Option<f32>>,
                     Box::new(move || {
                         sail_ref3.upgrade().map(|sail| {

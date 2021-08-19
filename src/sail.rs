@@ -1,4 +1,4 @@
-use std::{cell::RefCell, f32::consts::PI, rc::Rc};
+use std::f32::consts::PI;
 
 use macroquad::prelude::*;
 
@@ -32,7 +32,7 @@ impl Sail {
         min_sail_width: f32,
         anchor_pos: Vec2,
     ) -> (
-        Rc<RefCell<Self>>,
+        Self,
         Reader<(Vec2, Vec2)>,
         Reader<f32>,
         Reader<f32>,
@@ -46,7 +46,7 @@ impl Sail {
         let (force, f) = Sensor::new(0.0);
         let (current_angle, cur_a) = Sensor::new(0.0);
         (
-            Rc::new(RefCell::new(Self {
+            Self {
                 left_rope,
                 right_rope,
                 sail_width,
@@ -55,7 +55,7 @@ impl Sail {
                 current_angular_velocity: 0.0,
                 force,
                 rope_positions,
-            })),
+            },
             r2,
             f,
             cur_a,

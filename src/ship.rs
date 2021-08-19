@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::collections::HashMap;
 
 use macroquad::prelude::*;
 
@@ -14,13 +14,13 @@ pub use segments::*;
 
 pub(crate) struct SpaceShip {
     pub(crate) pos: Vec2,
-    pub(crate) sail: Rc<RefCell<Sail>>,
+    pub(crate) sail: Sail,
     pub(crate) grid: Vec<HashMap<isize, Segment>>,
 }
 
 impl SpaceShip {
     pub(crate) fn update(&mut self) {
-        self.sail.borrow_mut().update();
+        self.sail.update();
         for row in &mut self.grid {
             for segment in row.values_mut() {
                 segment.update();
@@ -37,7 +37,7 @@ impl SpaceShip {
                 segment.draw(self.pos + vec2(x, y));
             }
         }
-        self.sail.borrow().draw();
+        self.sail.draw();
     }
 }
 

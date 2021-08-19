@@ -36,16 +36,19 @@ impl Sail {
         Reader<(Vec2, Vec2)>,
         Reader<f32>,
         Reader<f32>,
+        Reader<f32>,
+        Reader<f32>,
     ) {
-        let sail_width = ButtonControlledRange::new(min_sail_width, sail_width, KeyCode::W);
-
+        let (sail_width, _) = ButtonControlledRange::new(min_sail_width, sail_width, KeyCode::W);
+        let (left_rope, lr) = ButtonControlledRange::new(1.0, left_rope, KeyCode::A);
+        let (right_rope, rr) = ButtonControlledRange::new(1.0, right_rope, KeyCode::D);
         let (rope_positions, r2) = Sensor::new(Default::default());
         let (force, f) = Sensor::new(0.0);
         let (current_angle, cur_a) = Sensor::new(0.0);
         (
             Rc::new(RefCell::new(Self {
-                left_rope: ButtonControlledRange::new(1.0, left_rope, KeyCode::A),
-                right_rope: ButtonControlledRange::new(1.0, right_rope, KeyCode::D),
+                left_rope,
+                right_rope,
                 sail_width,
                 anchor_pos,
                 current_angle,
@@ -56,6 +59,8 @@ impl Sail {
             r2,
             f,
             cur_a,
+            lr,
+            rr,
         )
     }
 
@@ -74,11 +79,11 @@ impl Sail {
         let vec = left - right;
         let angle = vec.y.atan2(vec.x);
         let cos_angle = angle.cos();
-        let f = self.sail_width.value * cos_angle * cos_angle;
+        let f = self.sail_width.value.get() * cos_angle * cos_angle;
 
         self.force.set(f);
 
-        let dir = self.right_rope.value - self.left_rope.value;
+        let dir = self.right_rope.value.get() - self.left_rope.value.get();
         let threshold = 0.001;
         // Only change angular velocity if rope difference is above a threshold.
         let dir = dir.signum() * (dir.abs() - threshold).max(0.0);
@@ -144,17 +149,17 @@ impl Sail {
     /// Compute the position of the sail corners
     pub fn rope_positions(&self) -> (Vec2, Vec2) {
         let angle = rope_angle(
-            self.left_rope.value,
-            self.right_rope.value,
-            self.sail_width.value,
+            self.left_rope.value.get(),
+            self.right_rope.value.get(),
+            self.sail_width.value.get(),
         );
         let half_angle = angle / 2.0;
         let a = self.current_angle.get();
         let left = a + half_angle;
         let right = a - half_angle;
         (
-            angle2vec(left) * self.left_rope.value,
-            angle2vec(right) * self.right_rope.value,
+            angle2vec(left) * self.left_rope.value.get(),
+            angle2vec(right) * self.right_rope.value.get(),
         )
     }
 }

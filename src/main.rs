@@ -1,7 +1,6 @@
 use std::{
     collections::HashMap,
     f32::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_4, PI},
-    rc::Rc,
 };
 
 use macroquad::prelude::*;
@@ -43,11 +42,9 @@ async fn main() {
     let mut photons = PhotonMap::new(100, screen);
 
     let sail_width = 50.0;
-    let (sail, rope_positions, force, current_angle) =
+    let (sail, rope_positions, force, current_angle, left_rope, right_rope) =
         Sail::new(100.0, 100.0, sail_width, 10.0, vec2(0.0, 0.0));
     photons.sails.push(rope_positions);
-    let sail_ref = Rc::downgrade(&sail);
-    let sail_ref3 = sail_ref.clone();
     let mut ship = SpaceShip {
         sail,
         pos: Vec2::new(0.0, 0.0),
@@ -71,12 +68,8 @@ async fn main() {
                 vec![
                     Box::new(move || current_angle.get().map(|a| -a))
                         as Box<dyn Fn() -> Option<f32>>,
-                    Box::new(move || {
-                        sail_ref3.upgrade().map(|sail| {
-                            let sail = sail.borrow();
-                            (sail.right_rope.value - sail.left_rope.value) / 10.0 + PI
-                        })
-                    }) as Box<dyn Fn() -> Option<f32>>,
+                    Box::new(move || Some((right_rope.get()? - left_rope.get()?) / 10.0 + PI))
+                        as Box<dyn Fn() -> Option<f32>>,
                 ],
                 -FRAC_PI_2..=FRAC_PI_2,
                 -FRAC_PI_2..=FRAC_PI_2,

@@ -1,3 +1,6 @@
+use std::cell::RefCell;
+use std::rc::Weak;
+
 use macroquad::prelude::*;
 use macroquad::rand::RandomRange;
 
@@ -5,6 +8,7 @@ use crate::stars::rand_in_rect;
 
 pub struct PhotonMap {
     photons: Vec<Photon>,
+    pub sails: Vec<Weak<RefCell<(Vec2, Vec2)>>>,
     rect: Rect,
 }
 
@@ -29,7 +33,11 @@ impl PhotonMap {
             Some("[4.705882, 1.6176472]".to_string())
         );
 
-        Self { photons, rect }
+        Self {
+            photons,
+            rect,
+            sails: Default::default(),
+        }
     }
 }
 
@@ -62,13 +70,16 @@ fn intersect(line1: (Vec2, Vec2), line2: (Vec2, Vec2)) -> Option<Vec2> {
 const LENGTH: f32 = 10.0;
 
 impl PhotonMap {
-    pub fn update(&mut self, (l, r): (Vec2, Vec2)) {
+    pub fn update(&mut self) {
         for photon in &mut self.photons {
             let len_vec = photon.dir.normalize() * LENGTH;
-            if let Some(collision) = intersect((photon.pos, len_vec), (l, r - l)) {
-                let sail_dir = (r - l).normalize();
-                photon.pos = collision;
-                photon.dir = -photon.dir - 2.0 * (-photon.dir).dot(sail_dir) * sail_dir;
+            for sail in &self.sails {
+                let (l, r) = *sail.upgrade().unwrap().borrow();
+                if let Some(collision) = intersect((photon.pos, len_vec), (l, r - l)) {
+                    let sail_dir = (r - l).normalize();
+                    photon.pos = collision;
+                    photon.dir = -photon.dir - 2.0 * (-photon.dir).dot(sail_dir) * sail_dir;
+                }
             }
             photon.pos += photon.dir;
             if !self.rect.contains(photon.pos) {

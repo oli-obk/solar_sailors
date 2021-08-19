@@ -1,5 +1,4 @@
 use std::{
-    cell::RefCell,
     collections::HashMap,
     f32::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_4, PI},
     rc::Rc,
@@ -43,13 +42,8 @@ async fn main() {
     let mut photons = PhotonMap::new(100, screen);
 
     let sail_width = 50.0;
-    let sail = Rc::new(RefCell::new(Sail::new(
-        100.0,
-        100.0,
-        sail_width,
-        10.0,
-        vec2(0.0, 0.0),
-    )));
+    let (sail, rope_positions) = Sail::new(100.0, 100.0, sail_width, 10.0, vec2(0.0, 0.0));
+    photons.sails.push(rope_positions);
     let sail_ref = Rc::downgrade(&sail);
     let sail_ref2 = sail_ref.clone();
     let sail_ref3 = sail_ref.clone();
@@ -98,7 +92,7 @@ async fn main() {
     loop {
         // Logic
         ship.update();
-        photons.update(ship.sail.borrow().rope_positions());
+        photons.update();
         orbits.update();
 
         if is_key_pressed(KeyCode::M) {

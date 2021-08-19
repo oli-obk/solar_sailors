@@ -8,7 +8,7 @@ use sail::Sail;
 use ship::{Gauge, Segment, SpaceShip};
 use stars::Stars;
 
-use crate::photons::PhotonMap;
+use crate::{photons::PhotonMap, ship::Attachement};
 
 mod controlled;
 mod datastructures;
@@ -43,13 +43,14 @@ async fn main() {
 
     let sail_width = 50.0;
     let (sail, rope_positions, force, current_angle, left_rope, right_rope) =
-        Sail::new(100.0, 100.0, sail_width, 10.0, vec2(0.0, 0.0));
+        Sail::new(100.0, 100.0, sail_width, 10.0);
     photons.sails.push(rope_positions);
     let mut ship = SpaceShip {
-        sail,
         pos: Vec2::new(0.0, 0.0),
         grid: std::iter::repeat_with(HashMap::default).take(2).collect(),
     };
+    let mut attachements: [Option<Box<dyn Attachement>>; 6] = Default::default();
+    attachements[0] = Some(Box::new(sail));
     ship.grid[0].insert(
         0,
         Segment {
@@ -58,7 +59,7 @@ async fn main() {
                 0.0..=sail_width,
                 (-FRAC_PI_3 * 2.0)..=(FRAC_PI_3 * 2.0),
             ))),
-            attachements: Default::default(),
+            attachements,
         },
     );
     ship.grid[1].insert(

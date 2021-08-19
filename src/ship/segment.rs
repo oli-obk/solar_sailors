@@ -1,8 +1,4 @@
-use std::{
-    cell::RefCell,
-    f32::consts::{FRAC_PI_3, PI},
-    rc::Rc,
-};
+use std::f32::consts::{FRAC_PI_3, PI};
 
 use macroquad::prelude::*;
 
@@ -39,13 +35,13 @@ impl<T: Attachement> Attachement for Option<T> {
     }
 }
 
-impl<T: Attachement + ?Sized> Attachement for Rc<RefCell<T>> {
+impl<T: Attachement + ?Sized> Attachement for Box<T> {
     fn update(&mut self) {
-        self.borrow_mut().update()
+        T::update(self)
     }
 
     fn draw(&self, pos: Vec2, angle: f32) {
-        self.borrow().draw(pos, angle)
+        T::draw(self, pos, angle)
     }
 }
 
@@ -68,7 +64,7 @@ pub trait Attachement {
 #[derive(Default)]
 pub struct Segment {
     pub content: Option<Box<dyn Content>>,
-    pub attachements: [Option<Rc<RefCell<dyn Attachement>>>; 6],
+    pub attachements: [Option<Box<dyn Attachement>>; 6],
 }
 
 impl Element for Segment {
@@ -108,7 +104,7 @@ const ATTACHEMENT_ANGLES: [f32; 6] = [
 pub const SIZE: f32 = 40.0;
 
 const ATTACHEMENT_OFFSETS: [Vec2; 6] = {
-    let x = SIZE;
+    let x = SIZE / 2.0;
     let x2 = x / 2.0;
     [
         const_vec2!([0.0, -x]),

@@ -8,19 +8,17 @@ mod segments {
     pub use gauge::Gauge;
 }
 
-use crate::sail::{angle2vec, Sail};
+use crate::sail::angle2vec;
 pub use segment::*;
 pub use segments::*;
 
 pub(crate) struct SpaceShip {
     pub(crate) pos: Vec2,
-    pub(crate) sail: Sail,
     pub(crate) grid: Vec<HashMap<isize, Segment>>,
 }
 
 impl SpaceShip {
     pub(crate) fn update(&mut self) {
-        self.sail.update();
         for row in &mut self.grid {
             for segment in row.values_mut() {
                 segment.update();
@@ -37,7 +35,6 @@ impl SpaceShip {
                 segment.draw(self.pos + vec2(x, y));
             }
         }
-        self.sail.draw();
     }
 }
 

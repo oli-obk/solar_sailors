@@ -19,7 +19,7 @@ pub(crate) struct Sail {
     pub current_angle: f32,
     pub current_angular_velocity: f32,
     /// The force with which the sail pulls.
-    pub force: f32,
+    force: Sensor<f32>,
 }
 
 const SIDE: f32 = 5.0;
@@ -31,11 +31,11 @@ impl Sail {
         sail_width: f32,
         min_sail_width: f32,
         anchor_pos: Vec2,
-    ) -> (Rc<RefCell<Self>>, Reader<(Vec2, Vec2)>) {
+    ) -> (Rc<RefCell<Self>>, Reader<(Vec2, Vec2)>, Reader<f32>) {
         let sail_width = ButtonControlledRange::new(min_sail_width, sail_width, KeyCode::W);
 
         let (rope_positions, r2) = Sensor::new(Default::default());
-
+        let (force, f) = Sensor::new(0.0);
         (
             Rc::new(RefCell::new(Self {
                 left_rope: ButtonControlledRange::new(1.0, left_rope, KeyCode::A),
@@ -44,10 +44,11 @@ impl Sail {
                 anchor_pos,
                 current_angle: 0.0,
                 current_angular_velocity: 0.0,
-                force: 0.0,
+                force,
                 rope_positions,
             })),
             r2,
+            f,
         )
     }
 
@@ -68,7 +69,7 @@ impl Sail {
         let cos_angle = angle.cos();
         let f = self.sail_width.value * cos_angle * cos_angle;
 
-        self.force = f;
+        self.force.set(f);
 
         let dir = self.right_rope.value - self.left_rope.value;
         let threshold = 0.001;

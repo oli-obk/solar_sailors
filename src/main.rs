@@ -12,9 +12,9 @@ use stars::Stars;
 use crate::photons::PhotonMap;
 
 mod controlled;
+mod datastructures;
 mod orbits;
 mod photons;
-mod datastructures;
 mod sail;
 mod ship;
 mod stars;
@@ -43,7 +43,7 @@ async fn main() {
     let mut photons = PhotonMap::new(100, screen);
 
     let sail_width = 50.0;
-    let (sail, rope_positions) = Sail::new(100.0, 100.0, sail_width, 10.0, vec2(0.0, 0.0));
+    let (sail, rope_positions, force) = Sail::new(100.0, 100.0, sail_width, 10.0, vec2(0.0, 0.0));
     photons.sails.push(rope_positions);
     let sail_ref = Rc::downgrade(&sail);
     let sail_ref2 = sail_ref.clone();
@@ -57,10 +57,7 @@ async fn main() {
         0,
         Segment {
             content: Some(Box::new(Gauge::new(
-                vec![
-                    Box::new(move || sail_ref.upgrade().map(|sail| sail.borrow().force))
-                        as Box<dyn Fn() -> Option<f32>>,
-                ],
+                vec![Box::new(move || force.get()) as Box<dyn Fn() -> Option<f32>>],
                 0.0..=sail_width,
                 (-FRAC_PI_3 * 2.0)..=(FRAC_PI_3 * 2.0),
             ))),

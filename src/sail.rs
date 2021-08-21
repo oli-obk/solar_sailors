@@ -105,19 +105,18 @@ impl crate::ship::Attachement for Sail {
     fn draw(&self, pos: Vec2, angle: f32) {
         // Draw the sail anchor
         {
-            let left = pos[0] - self.sail_width.min / 2.0;
-            let top = pos[1];
+            let left = -self.sail_width.min / 2.0;
             draw_triangle(
-                vec2(left - SIDE, top),
-                vec2(left - SIDE, top - SIDE),
-                vec2(left, top),
+                pos + vec2(left - SIDE, 0.0),
+                pos + vec2(left - SIDE, -SIDE),
+                pos + vec2(left, 0.0),
                 BLUE,
             );
-            let right = pos[0] + self.sail_width.min / 2.0;
+            let right = self.sail_width.min / 2.0;
             draw_triangle(
-                vec2(right + SIDE, top),
-                vec2(right + SIDE, top - SIDE),
-                vec2(right, top),
+                pos + vec2(right + SIDE, 0.0),
+                pos + vec2(right + SIDE, -SIDE),
+                pos + vec2(right, 0.0),
                 BLUE,
             );
         }

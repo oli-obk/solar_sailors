@@ -106,14 +106,7 @@ impl crate::ship::Attachement for Sail {
         // Draw the sail anchor
         {
             let left = pos[0] - self.sail_width.min / 2.0;
-            let top = pos[1] - SIDE;
-            draw_rectangle(
-                left - SIDE,
-                top,
-                self.sail_width.min + SIDE * 2.0,
-                SIDE,
-                BLUE,
-            );
+            let top = pos[1];
             draw_triangle(
                 vec2(left - SIDE, top),
                 vec2(left - SIDE, top - SIDE),
@@ -129,15 +122,13 @@ impl crate::ship::Attachement for Sail {
             );
         }
         let (left, right) = self.rope_positions.get();
-        let offset = vec2(0.0, SIDE);
-        let left = left - offset;
-        let right = right - offset;
-        let anchor = pos - offset;
+        let left = left + pos;
+        let right = right + pos;
         // Sail
         draw_line(left, right, 1.0, GOLD);
         // Ropes
-        draw_line(anchor, left, 1.0, GRAY);
-        draw_line(anchor, right, 1.0, GRAY);
+        draw_line(pos, left, 1.0, GRAY);
+        draw_line(pos, right, 1.0, GRAY);
     }
 }
 

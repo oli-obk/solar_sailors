@@ -17,6 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install dependencies
+      run: sudo apt update
       run: sudo apt -yq --no-install-suggests --no-install-recommends install libx11-dev libxi-dev libgl1-mesa-dev libasound2-dev
     - name: Build
       run: cargo build --verbose

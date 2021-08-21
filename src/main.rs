@@ -43,14 +43,14 @@ async fn main() {
 
     let sail_width = 50.0;
     let (sail, rope_positions, force, current_angle, left_rope, right_rope) =
-        Sail::new(100.0, 100.0, sail_width, 10.0);
+        Sail::new(100.0, 100.0, sail_width, 10.0, -FRAC_PI_3);
     photons.sails.push(rope_positions);
     let mut ship = SpaceShip {
         pos: Vec2::new(0.0, 0.0),
         grid: std::iter::repeat_with(HashMap::default).take(2).collect(),
     };
     let mut attachements: [Option<Box<dyn Attachement>>; 6] = Default::default();
-    attachements[0] = Some(Box::new(sail));
+    attachements[1] = Some(Box::new(sail));
     ship.grid[0].insert(
         0,
         Segment {
@@ -110,7 +110,7 @@ async fn main() {
                 ship.draw();
 
                 let pos = cam.screen_to_world(vec2(0.0, 0.0));
-                draw_text("M: view orbit", pos.x + 20.0, pos.y, 30.0, DARKGRAY);
+                draw_text("M: view orbit", pos.x + 20.0, pos.y + 20.0, 30.0, DARKGRAY);
                 draw_text(
                     "hold SHIFT with any of the following for inverse effect",
                     pos.x + 20.0,

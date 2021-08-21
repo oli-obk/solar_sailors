@@ -29,6 +29,7 @@ impl Sail {
         right_rope: f32,
         sail_width: f32,
         min_sail_width: f32,
+        current_angle: f32,
     ) -> (
         Self,
         Reader<(Vec2, Vec2)>,
@@ -42,7 +43,7 @@ impl Sail {
         let (right_rope, rr) = ButtonControlledRange::new(1.0, right_rope, KeyCode::D);
         let (rope_positions, r2) = Sensor::new(Default::default());
         let (force, f) = Sensor::new(0.0);
-        let (current_angle, cur_a) = Sensor::new(0.0);
+        let (current_angle, cur_a) = Sensor::new(current_angle);
         (
             Self {
                 left_rope,
@@ -63,13 +64,13 @@ impl Sail {
 }
 
 impl crate::ship::Attachement for Sail {
-    fn update(&mut self) {
+    fn update(&mut self, pos: Vec2, _angle: f32) {
         self.left_rope.update();
         self.right_rope.update();
         self.sail_width.update();
 
         let (left, right) = self.rope_positions();
-        self.rope_positions.set((left, right));
+        self.rope_positions.set((left + pos, right + pos));
 
         let vec = left - right;
         let angle = vec.y.atan2(vec.x);
@@ -106,23 +107,28 @@ impl crate::ship::Attachement for Sail {
         // Draw the sail anchor
         {
             let left = -self.sail_width.min / 2.0;
+            let (sin, cos) = angle.sin_cos();
+            let rot = |coord: Vec2| {
+                // p'x = cos(theta) * (px-ox) - sin(theta) * (py-oy) + ox
+                let x = cos * coord.x - sin * coord.y;
+                let y = sin * coord.x + cos * coord.y;
+                pos + vec2(x, y)
+            };
             draw_triangle(
-                pos + vec2(left - SIDE, 0.0),
-                pos + vec2(left - SIDE, -SIDE),
-                pos + vec2(left, 0.0),
+                rot(vec2(left - SIDE, 0.0)),
+                rot(vec2(left - SIDE, -SIDE)),
+                rot(vec2(left, 0.0)),
                 BLUE,
             );
             let right = self.sail_width.min / 2.0;
             draw_triangle(
-                pos + vec2(right + SIDE, 0.0),
-                pos + vec2(right + SIDE, -SIDE),
-                pos + vec2(right, 0.0),
+                rot(vec2(right + SIDE, 0.0)),
+                rot(vec2(right + SIDE, -SIDE)),
+                rot(vec2(right, 0.0)),
                 BLUE,
             );
         }
         let (left, right) = self.rope_positions.get();
-        let left = left + pos;
-        let right = right + pos;
         // Sail
         draw_line(left, right, 1.0, GOLD);
         // Ropes

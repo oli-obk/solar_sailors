@@ -1,5 +1,7 @@
 use std::ops::RangeInclusive;
 
+use macroquad::prelude::Vec2;
+
 use crate::ship::{
     draw_gauge,
     segment::{Content, Element},
@@ -33,7 +35,7 @@ impl Gauge {
 }
 
 impl Element for Gauge {
-    fn update(&mut self) {
+    fn update(&mut self, _pos: Vec2) {
         for (source, dest) in self.data_sources.iter().zip(&mut self.data) {
             if let Some(source) = source() {
                 *dest = source;
@@ -41,7 +43,7 @@ impl Element for Gauge {
         }
     }
 
-    fn draw(&self, pos: macroquad::prelude::Vec2) {
+    fn draw(&self, pos: Vec2) {
         draw_gauge(
             pos,
             18.0,

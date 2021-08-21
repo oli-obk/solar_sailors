@@ -19,9 +19,13 @@ pub(crate) struct SpaceShip {
 
 impl SpaceShip {
     pub(crate) fn update(&mut self) {
-        for row in &mut self.grid {
-            for segment in row.values_mut() {
-                segment.update();
+        let height = segment::SIZE;
+        for (level, row) in self.grid.iter_mut().enumerate() {
+            let y = level as f32 * height + height / 2.0;
+            for (&pos, segment) in row {
+                let y = (pos % 2) as f32 * height + y;
+                let x = segment::SIZE / (3.0_f32).sqrt() * pos as f32;
+                segment.update(self.pos + vec2(x, y));
             }
         }
     }

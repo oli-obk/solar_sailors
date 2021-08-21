@@ -3,14 +3,14 @@ use std::f32::consts::{FRAC_PI_3, PI};
 use macroquad::prelude::*;
 
 pub trait Element {
-    fn update(&mut self);
+    fn update(&mut self, pos: Vec2);
     fn draw(&self, pos: Vec2);
 }
 
 impl<T: Element> Element for Option<T> {
-    fn update(&mut self) {
+    fn update(&mut self, pos: Vec2) {
         if let Some(this) = self {
-            this.update()
+            this.update(pos)
         }
     }
 
@@ -22,9 +22,9 @@ impl<T: Element> Element for Option<T> {
 }
 
 impl<T: Attachement> Attachement for Option<T> {
-    fn update(&mut self) {
+    fn update(&mut self, pos: Vec2, angle: f32) {
         if let Some(this) = self {
-            this.update()
+            this.update(pos, angle)
         }
     }
 
@@ -36,8 +36,8 @@ impl<T: Attachement> Attachement for Option<T> {
 }
 
 impl<T: Attachement + ?Sized> Attachement for Box<T> {
-    fn update(&mut self) {
-        T::update(self)
+    fn update(&mut self, pos: Vec2, angle: f32) {
+        T::update(self, pos, angle)
     }
 
     fn draw(&self, pos: Vec2, angle: f32) {
@@ -46,8 +46,8 @@ impl<T: Attachement + ?Sized> Attachement for Box<T> {
 }
 
 impl<T: Element + ?Sized> Element for Box<T> {
-    fn update(&mut self) {
-        (&mut **self).update()
+    fn update(&mut self, pos: Vec2) {
+        (&mut **self).update(pos)
     }
 
     fn draw(&self, pos: Vec2) {
@@ -57,7 +57,7 @@ impl<T: Element + ?Sized> Element for Box<T> {
 
 pub trait Content: Element {}
 pub trait Attachement {
-    fn update(&mut self);
+    fn update(&mut self, pos: Vec2, angle: f32);
     fn draw(&self, pos: Vec2, angle: f32);
 }
 
@@ -68,10 +68,10 @@ pub struct Segment {
 }
 
 impl Element for Segment {
-    fn update(&mut self) {
-        self.content.update();
-        for attachement in &mut self.attachements {
-            attachement.update();
+    fn update(&mut self, pos: Vec2) {
+        self.content.update(pos);
+        for (i, attachement) in self.attachements.iter_mut().enumerate() {
+            attachement.update(pos + ATTACHEMENT_OFFSETS[i], ATTACHEMENT_ANGLES[i]);
         }
     }
 
@@ -106,12 +106,13 @@ pub const SIZE: f32 = 40.0;
 const ATTACHEMENT_OFFSETS: [Vec2; 6] = {
     let x = SIZE / 2.0;
     let x2 = x / 2.0;
+    let x3 = x * 0.86602540378; // (x * 0.75).sqrt()
     [
         const_vec2!([0.0, -x]),
-        const_vec2!([x2, -x2]),
-        const_vec2!([x2, x2]),
+        const_vec2!([x3, -x2]),
+        const_vec2!([x3, x2]),
         const_vec2!([0.0, x]),
-        const_vec2!([-x2, x2]),
-        const_vec2!([-x2, -x2]),
+        const_vec2!([-x3, x2]),
+        const_vec2!([-x3, -x2]),
     ]
 };

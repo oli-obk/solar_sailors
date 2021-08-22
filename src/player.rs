@@ -122,7 +122,7 @@ impl Player {
         let speed_limit = match self.action {
             Action::WalkLeft |
             Action::WalkRight => 5,
-            Action::Dance |
+            Action::Dance => 12,
             Action::Idle |
             Action::Attack |
             Action::Sit |

@@ -43,9 +43,9 @@ async fn main() {
     );
     let mut photons = PhotonMap::new(100, screen);
 
-    let sail_width = 50.0;
+    let sail_width = 100.0;
     let (sail, rope_positions, force, current_angle, left_rope, right_rope) =
-        Sail::new(100.0, 100.0, sail_width, 10.0, -FRAC_PI_3);
+        Sail::new(200.0, 200.0, sail_width, 20.0, -FRAC_PI_3);
     photons.sails.push(rope_positions);
     let mut ship = SpaceShip {
         pos: Vec2::new(0.0, 0.0),

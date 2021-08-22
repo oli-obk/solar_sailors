@@ -118,16 +118,16 @@ impl Player {
         if self.speed == 8 {
             self.speed = 0;
             self.i += 1;
-            let (i, x) = match self.action {
-                Action::Idle => (6, 0.0),
-                Action::Dance => (7, 0.0),
-                Action::WalkLeft => (3, -1.0),
-                Action::WalkRight => (3, 1.0),
+            let (do_move, x) = match self.action {
+                Action::Idle => (false, 0.0),
+                Action::Dance => (false, 0.0),
+                Action::WalkLeft => (self.i == 3 || self.i == 1, -SCALE),
+                Action::WalkRight => (self.i == 3 || self.i == 1, SCALE),
                 Action::Attack => todo!(),
                 Action::Sit => todo!(),
                 Action::Jump => todo!(),
             };
-            if self.i == i {
+            if do_move {
                 self.x += x;
             }
             if self.i == self.animations[self.action as usize].frames {
@@ -149,14 +149,16 @@ impl Player {
     pub(crate) fn draw(&self) {
         let AnimationFrame {
             source_rect,
-            dest_size,
+            mut dest_size,
         } = self.anim.frame();
+
+        dest_size *= SCALE;
 
         let base = ATTACHEMENT_OFFSETS[self.side as usize];
         let x = self.x + dest_size.x / 2.0;
         let offset = x * base.perp().normalize();
         let (x, y) = self.pos.to_pixel(SPACING);
-        const ANIM_OFFSET: f32 = 3.0;
+        const ANIM_OFFSET: f32 = 3.0 * SCALE;
         // Lower the animation onto the object by shifting away the empty
         // pixels below it.
         const BASE_SCALE: f32 = (SIZE / 2.0 - ANIM_OFFSET) / (SIZE / 2.0);
@@ -176,3 +178,5 @@ impl Player {
         );
     }
 }
+
+const SCALE: f32 = (SIZE / 30.0) as i32 as f32;

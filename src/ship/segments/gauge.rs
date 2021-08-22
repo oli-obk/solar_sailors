@@ -2,10 +2,7 @@ use std::ops::RangeInclusive;
 
 use macroquad::prelude::Vec2;
 
-use crate::ship::{
-    draw_gauge,
-    segment::{Content, Element},
-};
+use crate::ship::{SIZE, draw_gauge, segment::{Content, Element}};
 
 pub struct Gauge {
     data_sources: Vec<Box<dyn Fn() -> Option<f32>>>,
@@ -46,7 +43,7 @@ impl Element for Gauge {
     fn draw(&self, pos: Vec2) {
         draw_gauge(
             pos,
-            18.0,
+            SIZE * 0.45,
             self.data.iter().copied(),
             *self.value_range.start(),
             *self.handle_range.start(),

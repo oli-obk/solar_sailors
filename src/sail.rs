@@ -5,6 +5,7 @@ use macroquad::prelude::*;
 use crate::{
     controlled::ButtonControlledRange,
     datastructures::{Reader, Sensor},
+    ship::SIZE,
 };
 
 pub(crate) struct Sail {
@@ -21,7 +22,7 @@ pub(crate) struct Sail {
     force: Sensor<f32>,
 }
 
-const SIDE: f32 = 5.0;
+const SIDE: f32 = SIZE / 8.0;
 
 impl Sail {
     pub(crate) fn new(

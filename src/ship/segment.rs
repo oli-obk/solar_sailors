@@ -101,7 +101,7 @@ pub(crate) const ATTACHEMENT_ANGLES: [f32; 6] = [
     FRAC_PI_3 * 5.0,
 ];
 
-pub const SIZE: f32 = 40.0;
+pub const SIZE: f32 = 100.0;
 
 pub(crate) const ATTACHEMENT_OFFSETS: [Vec2; 6] = {
     let x = SIZE / 2.0;

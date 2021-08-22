@@ -113,7 +113,7 @@ async fn main() {
         (0, 0).into(),
         Segment {
             content: Some(Box::new(Gauge::new(
-                vec![Box::new(move || force.get()) as Box<dyn Fn() -> Option<f32>>],
+                vec![Box::new(move || force.get()) as _],
                 0.0..=sail_width,
                 (-FRAC_PI_3 * 2.0)..=(FRAC_PI_3 * 2.0),
             ))),
@@ -125,10 +125,8 @@ async fn main() {
         Segment {
             content: Some(Box::new(Gauge::new(
                 vec![
-                    Box::new(move || current_angle.get().map(|a| -a))
-                        as Box<dyn Fn() -> Option<f32>>,
-                    Box::new(move || Some((right_rope.get()? - left_rope.get()?) / 10.0 + PI))
-                        as Box<dyn Fn() -> Option<f32>>,
+                    Box::new(move || current_angle.get().map(|a| -a)) as _,
+                    Box::new(move || Some((right_rope.get()? - left_rope.get()?) / 10.0 + PI)) as _,
                 ],
                 -FRAC_PI_2..=FRAC_PI_2,
                 -FRAC_PI_2..=FRAC_PI_2,

@@ -14,30 +14,20 @@ pub use segments::*;
 
 pub(crate) struct SpaceShip {
     pub(crate) pos: Vec2,
-    pub(crate) grid: Vec<HashMap<isize, Segment>>,
+    pub(crate) grid: HashMap<hex2d::Coordinate, Segment>,
 }
 
 impl SpaceShip {
     pub(crate) fn update(&mut self) {
-        let height = segment::SIZE;
-        for (level, row) in self.grid.iter_mut().enumerate() {
-            let y = level as f32 * height + height / 2.0;
-            for (&pos, segment) in row {
-                let y = (pos % 2) as f32 * height + y;
-                let x = segment::SIZE / (3.0_f32).sqrt() * pos as f32;
-                segment.update(self.pos + vec2(x, y));
-            }
+        for (pos, segment) in self.grid.iter_mut() {
+            let (x, y) = pos.to_pixel(hex2d::Spacing::FlatTop(segment::SIZE / (3.0_f32).sqrt()));
+            segment.update(self.pos + vec2(x, y));
         }
     }
     pub(crate) fn draw(&self) {
-        let height = segment::SIZE;
-        for (level, row) in self.grid.iter().enumerate() {
-            let y = level as f32 * height + height / 2.0;
-            for (&pos, segment) in row {
-                let y = (pos % 2) as f32 * height + y;
-                let x = segment::SIZE / (3.0_f32).sqrt() * pos as f32;
-                segment.draw(self.pos + vec2(x, y));
-            }
+        for (pos, segment) in self.grid.iter() {
+            let (x, y) = pos.to_pixel(hex2d::Spacing::FlatTop(segment::SIZE / (3.0_f32).sqrt()));
+            segment.draw(self.pos + vec2(x, y));
         }
     }
 }

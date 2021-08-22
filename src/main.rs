@@ -105,12 +105,12 @@ async fn main() {
     photons.sails.push(rope_positions);
     let mut ship = SpaceShip {
         pos: Vec2::new(0.0, 0.0),
-        grid: std::iter::repeat_with(HashMap::default).take(2).collect(),
+        grid: HashMap::default(),
     };
     let mut attachements: [Option<Box<dyn Attachement>>; 6] = Default::default();
     attachements[1] = Some(Box::new(sail));
-    ship.grid[0].insert(
-        0,
+    ship.grid.insert(
+        (0, 0).into(),
         Segment {
             content: Some(Box::new(Gauge::new(
                 vec![Box::new(move || force.get()) as Box<dyn Fn() -> Option<f32>>],
@@ -120,8 +120,8 @@ async fn main() {
             attachements,
         },
     );
-    ship.grid[1].insert(
-        0,
+    ship.grid.insert(
+        (0, -1).into(),
         Segment {
             content: Some(Box::new(Gauge::new(
                 vec![

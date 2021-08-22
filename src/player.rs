@@ -129,6 +129,17 @@ impl Player {
             };
             if do_move {
                 self.x += x;
+                if self.x.abs() > 10 {
+                    if self.x > 0 {
+                        self.side += 1;
+                        self.side %= 6;
+                    } else if self.side == 0 {
+                        self.side = 5;
+                    } else {
+                        self.side -= 1;
+                    }
+                    self.x *= -1;
+                }
             }
             if self.i == self.animations[self.action as usize].frames {
                 self.action = match self.action {
@@ -155,13 +166,13 @@ impl Player {
         dest_size *= SCALE as f32;
 
         let base = ATTACHEMENT_OFFSETS[self.side as usize];
-        let x = (self.x * SCALE) as f32 + dest_size.x / 2.0;
+        let x = (self.x * SCALE) as f32 - dest_size.x / 2.0;
         let offset = x * base.perp().normalize();
         let (x, y) = self.pos.to_pixel(SPACING);
-        const ANIM_OFFSET: i32 = 3 * SCALE;
+        const ANIM_OFFSET: i32 = 12 * SCALE;
         // Lower the animation onto the object by shifting away the empty
         // pixels below it.
-        const BASE_SCALE: f32 = (SIZE / 2.0 - ANIM_OFFSET as f32) / (SIZE / 2.0);
+        const BASE_SCALE: f32 = (SIZE / 2.0 + ANIM_OFFSET as f32) / (SIZE / 2.0);
         let pos = vec2(x, y) + base * BASE_SCALE + offset;
 
         draw_texture_ex(
@@ -173,6 +184,7 @@ impl Player {
                 dest_size: Some(dest_size),
                 source: Some(source_rect),
                 rotation: ATTACHEMENT_ANGLES[self.side as usize],
+                pivot: Some(pos),
                 ..Default::default()
             },
         );

@@ -92,7 +92,7 @@ impl Element for Segment {
     }
 }
 
-const ATTACHEMENT_ANGLES: [f32; 6] = [
+pub(crate) const ATTACHEMENT_ANGLES: [f32; 6] = [
     0.0,
     FRAC_PI_3,
     FRAC_PI_3 * 2.0,
@@ -103,7 +103,7 @@ const ATTACHEMENT_ANGLES: [f32; 6] = [
 
 pub const SIZE: f32 = 40.0;
 
-const ATTACHEMENT_OFFSETS: [Vec2; 6] = {
+pub(crate) const ATTACHEMENT_OFFSETS: [Vec2; 6] = {
     let x = SIZE / 2.0;
     let x2 = x / 2.0;
     let x3 = x * 0.86602540378; // (x * 0.75).sqrt()

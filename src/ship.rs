@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use hex2d::Spacing;
 use macroquad::prelude::*;
 
 mod segment;
@@ -17,16 +18,19 @@ pub(crate) struct SpaceShip {
     pub(crate) grid: HashMap<hex2d::Coordinate, Segment>,
 }
 
+// sqrt is not const fn, so we inline sqrt(3)
+pub(crate) const SPACING: Spacing = Spacing::FlatTop(segment::SIZE / 1.73205080757);
+
 impl SpaceShip {
     pub(crate) fn update(&mut self) {
         for (pos, segment) in self.grid.iter_mut() {
-            let (x, y) = pos.to_pixel(hex2d::Spacing::FlatTop(segment::SIZE / (3.0_f32).sqrt()));
+            let (x, y) = pos.to_pixel(SPACING);
             segment.update(self.pos + vec2(x, y));
         }
     }
     pub(crate) fn draw(&self) {
         for (pos, segment) in self.grid.iter() {
-            let (x, y) = pos.to_pixel(hex2d::Spacing::FlatTop(segment::SIZE / (3.0_f32).sqrt()));
+            let (x, y) = pos.to_pixel(SPACING);
             segment.draw(self.pos + vec2(x, y));
         }
     }

@@ -85,7 +85,7 @@ async fn main() {
         ship.update();
         photons.update();
         orbits.update();
-        player.update();
+        player.update(&ship.grid);
 
         if is_key_pressed(KeyCode::M) {
             window = match window {

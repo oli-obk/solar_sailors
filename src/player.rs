@@ -1,10 +1,12 @@
+use std::collections::HashMap;
+
 use hex2d::Coordinate;
 use macroquad::prelude::{
     animation::{AnimatedSprite, Animation, AnimationFrame},
     *,
 };
 
-use crate::ship::{ATTACHEMENT_ANGLES, ATTACHEMENT_OFFSETS, SIZE, SPACING};
+use crate::ship::{Segment, ATTACHEMENT_ANGLES, ATTACHEMENT_OFFSETS, SIZE, SPACING};
 
 pub struct Player {
     pos: Coordinate,
@@ -100,7 +102,7 @@ impl Player {
         }
     }
 
-    pub fn update(&mut self) {
+    pub fn update(&mut self, grid: &HashMap<hex2d::Coordinate, Segment>) {
         match (is_key_down(KeyCode::Left), is_key_down(KeyCode::Right)) {
             (true, true) => self.next_action = Action::Dance,
             (false, true) => self.next_action = Action::WalkRight,
@@ -141,6 +143,17 @@ impl Player {
                         self.side -= 1;
                     }
                     self.x *= -1;
+                    let coord = self.pos.neighbors()[self.side as usize];
+                    if grid.contains_key(&coord) {
+                        self.pos = coord;
+                        self.side += 3;
+                        if self.x > 0 {
+                            self.side -= 1;
+                        } else {
+                            self.side += 1;
+                        }
+                        self.side %= 6;
+                    }
                 }
             }
             if self.i == self.animations[self.action as usize].frames {

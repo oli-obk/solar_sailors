@@ -17,6 +17,7 @@ pub struct Player {
     anim: AnimatedSprite,
     animations: [Animation; 7],
     action: Action,
+    next_action: Action,
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -95,10 +96,23 @@ impl Player {
             anim,
             animations,
             action: Action::Idle,
+            next_action: Action::Idle,
         }
     }
 
     pub fn update(&mut self) {
+        match (is_key_down(KeyCode::Left), is_key_down(KeyCode::Right)) {
+            (true, true) => self.next_action = Action::Dance,
+            (false, true) => self.next_action = Action::WalkRight,
+            (true, false) => self.next_action = Action::WalkLeft,
+            (false, false) => match self.next_action {
+                Action::Dance | Action::WalkLeft | Action::WalkRight => {
+                    self.next_action = Action::Idle
+                }
+                Action::Idle | Action::Attack | Action::Sit | Action::Jump => {}
+            },
+        }
+
         self.speed += 1;
         // Only step the animation every 8 frames.
         if self.speed == 8 {
@@ -106,9 +120,9 @@ impl Player {
             self.i += 1;
             let (i, x) = match self.action {
                 Action::Idle => (6, 0.0),
-                Action::Dance => todo!(),
-                Action::WalkLeft => todo!(),
-                Action::WalkRight => todo!(),
+                Action::Dance => (7, 0.0),
+                Action::WalkLeft => (3, -1.0),
+                Action::WalkRight => (3, 1.0),
                 Action::Attack => todo!(),
                 Action::Sit => todo!(),
                 Action::Jump => todo!(),
@@ -119,7 +133,7 @@ impl Player {
             if self.i == self.animations[self.action as usize].frames {
                 self.action = match self.action {
                     Action::Dance | Action::WalkLeft | Action::WalkRight | Action::Idle => {
-                        Action::Idle
+                        self.next_action
                     }
                     Action::Attack => todo!(),
                     Action::Sit => todo!(),

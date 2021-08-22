@@ -113,24 +113,31 @@ async fn main() {
                 let pos = cam.screen_to_world(vec2(0.0, 0.0));
                 draw_text("M: view orbit", pos.x + 20.0, pos.y + 20.0, 30.0, DARKGRAY);
                 draw_text(
-                    "hold SHIFT with any of the following for inverse effect",
+                    "Arrow Keys: control crab",
                     pos.x + 20.0,
                     pos.y + 40.0,
                     30.0,
                     DARKGRAY,
                 );
-                draw_text("W: expand sail", pos.x + 20.0, pos.y + 60.0, 30.0, DARKGRAY);
+                draw_text(
+                    "hold SHIFT with any of the following for inverse effect",
+                    pos.x + 20.0,
+                    pos.y + 60.0,
+                    30.0,
+                    DARKGRAY,
+                );
+                draw_text("W: expand sail", pos.x + 20.0, pos.y + 80.0, 30.0, DARKGRAY);
                 draw_text(
                     "A: let out left rope",
                     pos.x + 20.0,
-                    pos.y + 80.0,
+                    pos.y + 100.0,
                     30.0,
                     DARKGRAY,
                 );
                 draw_text(
                     "D: let out right rope",
                     pos.x + 20.0,
-                    pos.y + 100.0,
+                    pos.y + 120.0,
                     30.0,
                     DARKGRAY,
                 );

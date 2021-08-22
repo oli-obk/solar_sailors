@@ -20,7 +20,7 @@ pub struct Player {
     next_action: Action,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 enum Action {
     Dance = 0,
     WalkLeft = 1,
@@ -107,7 +107,9 @@ impl Player {
             (true, false) => self.next_action = Action::WalkLeft,
             (false, false) => match self.next_action {
                 Action::Dance | Action::WalkLeft | Action::WalkRight => {
-                    self.next_action = Action::Idle
+                    if self.action == self.next_action {
+                        self.next_action = Action::Idle;
+                    }
                 }
                 Action::Idle | Action::Attack | Action::Sit | Action::Jump => {}
             },

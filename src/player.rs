@@ -118,15 +118,24 @@ impl Player {
         }
 
         self.speed += 1;
-        // Only step the animation every 8 frames.
-        if self.speed == 8 {
+        // Only step the animation every few frames.
+        let speed_limit = match self.action {
+            Action::WalkLeft |
+            Action::WalkRight => 5,
+            Action::Dance |
+            Action::Idle |
+            Action::Attack |
+            Action::Sit |
+            Action::Jump => 8,
+        };
+        if self.speed == speed_limit {
             self.speed = 0;
             self.i += 1;
             let (do_move, x) = match self.action {
                 Action::Idle => (false, 0),
                 Action::Dance => (false, 0),
-                Action::WalkLeft => (self.i == 3 || self.i == 1, -1),
-                Action::WalkRight => (self.i == 3 || self.i == 1, 1),
+                Action::WalkLeft => (true, -1),
+                Action::WalkRight => (true, 1),
                 Action::Attack => todo!(),
                 Action::Sit => todo!(),
                 Action::Jump => todo!(),

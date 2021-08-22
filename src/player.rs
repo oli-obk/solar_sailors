@@ -136,12 +136,10 @@ impl Player {
                 if self.x.abs() > 10 {
                     if self.x > 0 {
                         self.side += 1;
-                        self.side %= 6;
-                    } else if self.side == 0 {
-                        self.side = 5;
                     } else {
-                        self.side -= 1;
+                        self.side += 5;
                     }
+                    self.side %= 6;
                     self.x *= -1;
                     let coord = self.pos.neighbors()[self.side as usize];
                     if grid.contains_key(&coord) {

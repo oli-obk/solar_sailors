@@ -12,7 +12,7 @@ pub struct Player {
     /// Used to reduce the speed of animations.
     speed: u32,
     i: u32,
-    x: f32,
+    x: i32,
     texture: Texture2D,
     anim: AnimatedSprite,
     animations: [Animation; 7],
@@ -92,7 +92,7 @@ impl Player {
             texture,
             speed: 0,
             i: 0,
-            x: 0.0,
+            x: 0,
             anim,
             animations,
             action: Action::Idle,
@@ -119,10 +119,10 @@ impl Player {
             self.speed = 0;
             self.i += 1;
             let (do_move, x) = match self.action {
-                Action::Idle => (false, 0.0),
-                Action::Dance => (false, 0.0),
-                Action::WalkLeft => (self.i == 3 || self.i == 1, -SCALE),
-                Action::WalkRight => (self.i == 3 || self.i == 1, SCALE),
+                Action::Idle => (false, 0),
+                Action::Dance => (false, 0),
+                Action::WalkLeft => (self.i == 3 || self.i == 1, -1),
+                Action::WalkRight => (self.i == 3 || self.i == 1, 1),
                 Action::Attack => todo!(),
                 Action::Sit => todo!(),
                 Action::Jump => todo!(),
@@ -152,16 +152,16 @@ impl Player {
             mut dest_size,
         } = self.anim.frame();
 
-        dest_size *= SCALE;
+        dest_size *= SCALE as f32;
 
         let base = ATTACHEMENT_OFFSETS[self.side as usize];
-        let x = self.x + dest_size.x / 2.0;
+        let x = (self.x * SCALE) as f32 + dest_size.x / 2.0;
         let offset = x * base.perp().normalize();
         let (x, y) = self.pos.to_pixel(SPACING);
-        const ANIM_OFFSET: f32 = 3.0 * SCALE;
+        const ANIM_OFFSET: i32 = 3 * SCALE;
         // Lower the animation onto the object by shifting away the empty
         // pixels below it.
-        const BASE_SCALE: f32 = (SIZE / 2.0 - ANIM_OFFSET) / (SIZE / 2.0);
+        const BASE_SCALE: f32 = (SIZE / 2.0 - ANIM_OFFSET as f32) / (SIZE / 2.0);
         let pos = vec2(x, y) + base * BASE_SCALE + offset;
 
         draw_texture_ex(
@@ -179,4 +179,4 @@ impl Player {
     }
 }
 
-const SCALE: f32 = (SIZE / 30.0) as i32 as f32;
+const SCALE: i32 = (SIZE / 30.0) as _;

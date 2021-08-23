@@ -110,8 +110,8 @@ impl Player {
             let (do_move, x) = match self.action {
                 Action::Idle => (false, 0),
                 Action::Sleep => (false, 0),
-                Action::Walk { right: false } => (true, -1),
-                Action::Walk { right: true } => (true, 1),
+                Action::Walk { right: false } => (true, -2),
+                Action::Walk { right: true } => (true, 2),
                 Action::Grab => todo!(),
             };
             if do_move {

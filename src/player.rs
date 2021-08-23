@@ -6,7 +6,7 @@ use macroquad::prelude::{
     *,
 };
 
-use crate::ship::{Segment, ATTACHEMENT_ANGLES, ATTACHEMENT_OFFSETS, SIZE, SPACING};
+use crate::ship::{Segment, ATTACHEMENT_ANGLES, ATTACHEMENT_OFFSETS, SIZE, SPACING, SQRT3};
 
 pub struct Player {
     pos: Coordinate,
@@ -17,26 +17,23 @@ pub struct Player {
     x: i32,
     texture: Texture2D,
     anim: AnimatedSprite,
-    animations: [Animation; 7],
+    animations: [Animation; 4],
     action: Action,
     next_action: Action,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 enum Action {
-    Dance = 0,
-    WalkLeft = 1,
-    WalkRight = 2,
-    Idle = 3,
-    Attack = 4,
-    Sit = 5,
-    Jump = 6,
+    Idle,
+    Walk { right: bool },
+    Sleep,
+    Grab,
 }
 
 impl Player {
     pub fn new(coord: impl Into<Coordinate>, side: u8) -> Self {
         let texture = Texture2D::from_file_with_format(
-            include_bytes!("../assets/redCrab.png"),
+            include_bytes!("../assets/Crab Sprite Sheet.png"),
             Some(ImageFormat::Png),
         );
         // Pixel art
@@ -44,49 +41,31 @@ impl Player {
 
         let animations = [
             Animation {
-                name: "dance".into(),
+                name: "idle".into(),
                 row: 0,
-                frames: 7,
-                fps: 7,
+                frames: 4,
+                fps: 4,
             },
             Animation {
-                name: "walk left".into(),
+                name: "move".into(),
                 row: 1,
                 frames: 4,
-                fps: 7,
+                fps: 4,
             },
             Animation {
-                name: "walk right".into(),
+                name: "sleep".into(),
                 row: 2,
                 frames: 4,
-                fps: 7,
+                fps: 4,
             },
             Animation {
-                name: "idle".into(),
+                name: "grab".into(),
                 row: 3,
-                frames: 6,
-                fps: 7,
-            },
-            Animation {
-                name: "attack".into(),
-                row: 4,
-                frames: 7,
-                fps: 7,
-            },
-            Animation {
-                name: "sit".into(),
-                row: 5,
                 frames: 4,
-                fps: 7,
-            },
-            Animation {
-                name: "jump".into(),
-                row: 4,
-                frames: 3,
-                fps: 7,
+                fps: 4,
             },
         ];
-        let anim = AnimatedSprite::new(16, 16, &animations, false);
+        let anim = AnimatedSprite::new(32, 32, &animations, false);
 
         Self {
             pos: coord.into(),
@@ -104,45 +83,40 @@ impl Player {
 
     pub fn update(&mut self, grid: &HashMap<hex2d::Coordinate, Segment>) {
         match (is_key_down(KeyCode::Left), is_key_down(KeyCode::Right)) {
-            (true, true) => self.next_action = Action::Dance,
-            (false, true) => self.next_action = Action::WalkRight,
-            (true, false) => self.next_action = Action::WalkLeft,
+            (true, true) => self.next_action = Action::Sleep,
+            (false, true) => self.next_action = Action::Walk { right: true },
+            (true, false) => self.next_action = Action::Walk { right: false },
             (false, false) => match self.next_action {
-                Action::Dance | Action::WalkLeft | Action::WalkRight => {
-                    if self.action == self.next_action {
+                Action::Walk { .. } => {
+                    if let Action::Walk { .. } = self.action {
                         self.next_action = Action::Idle;
                     }
                 }
-                Action::Idle | Action::Attack | Action::Sit | Action::Jump => {}
+                Action::Idle | Action::Sleep | Action::Grab => {}
             },
         }
 
         self.speed += 1;
         // Only step the animation every few frames.
         let speed_limit = match self.action {
-            Action::WalkLeft |
-            Action::WalkRight => 5,
-            Action::Dance => 12,
-            Action::Idle |
-            Action::Attack |
-            Action::Sit |
-            Action::Jump => 8,
+            Action::Walk { .. } => 3,
+            Action::Sleep => 10,
+            Action::Idle => 10,
+            Action::Grab => 8,
         };
         if self.speed == speed_limit {
             self.speed = 0;
             self.i += 1;
             let (do_move, x) = match self.action {
                 Action::Idle => (false, 0),
-                Action::Dance => (false, 0),
-                Action::WalkLeft => (true, -1),
-                Action::WalkRight => (true, 1),
-                Action::Attack => todo!(),
-                Action::Sit => todo!(),
-                Action::Jump => todo!(),
+                Action::Sleep => (false, 0),
+                Action::Walk { right: false } => (true, -1),
+                Action::Walk { right: true } => (true, 1),
+                Action::Grab => todo!(),
             };
             if do_move {
                 self.x += x;
-                if self.x.abs() > 10 {
+                if self.x.abs() > (SIZE / SQRT3) as i32 / SCALE / 2 {
                     if self.x > 0 {
                         self.side += 1;
                     } else {
@@ -163,19 +137,21 @@ impl Player {
                     }
                 }
             }
-            if self.i == self.animations[self.action as usize].frames {
+            let action_id = match self.action {
+                Action::Idle => 0,
+                Action::Walk { .. } => 1,
+                Action::Sleep => 2,
+                Action::Grab => 3,
+            };
+            if self.i == self.animations[action_id].frames {
                 self.action = match self.action {
-                    Action::Dance | Action::WalkLeft | Action::WalkRight | Action::Idle => {
-                        self.next_action
-                    }
-                    Action::Attack => todo!(),
-                    Action::Sit => todo!(),
-                    Action::Jump => todo!(),
+                    Action::Sleep | Action::Walk { .. } | Action::Idle => self.next_action,
+                    Action::Grab => todo!(),
                 };
                 self.i = 0;
             }
+            self.anim.set_animation(action_id);
         }
-        self.anim.set_animation(self.action as _);
         self.anim.set_frame(self.i);
     }
 
@@ -191,11 +167,18 @@ impl Player {
         let x = (self.x * SCALE) as f32 - dest_size.x / 2.0;
         let offset = x * base.perp().normalize();
         let (x, y) = self.pos.to_pixel(SPACING);
-        const ANIM_OFFSET: i32 = 12 * SCALE;
+        const ANIM_OFFSET: i32 = 32 * SCALE;
         // Lower the animation onto the object by shifting away the empty
         // pixels below it.
         const BASE_SCALE: f32 = (SIZE / 2.0 + ANIM_OFFSET as f32) / (SIZE / 2.0);
         let pos = vec2(x, y) + base * BASE_SCALE + offset;
+
+        let flip_x = match self.action {
+            Action::Idle => false,
+            Action::Walk { right } => right,
+            Action::Sleep => false,
+            Action::Grab => false,
+        };
 
         draw_texture_ex(
             self.texture,
@@ -207,10 +190,11 @@ impl Player {
                 source: Some(source_rect),
                 rotation: ATTACHEMENT_ANGLES[self.side as usize],
                 pivot: Some(pos),
+                flip_x,
                 ..Default::default()
             },
         );
     }
 }
 
-const SCALE: i32 = (SIZE / 30.0) as _;
+const SCALE: i32 = (SIZE / 100.0) as _;

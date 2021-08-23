@@ -19,7 +19,8 @@ pub(crate) struct SpaceShip {
 }
 
 // sqrt is not const fn, so we inline sqrt(3)
-pub(crate) const SPACING: Spacing = Spacing::FlatTop(segment::SIZE / 1.73205080757);
+pub const SQRT3: f32 = 1.73205080757;
+pub(crate) const SPACING: Spacing = Spacing::FlatTop(segment::SIZE / SQRT3);
 
 impl SpaceShip {
     pub(crate) fn update(&mut self) {

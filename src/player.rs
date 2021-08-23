@@ -19,7 +19,6 @@ pub struct Player {
     anim: AnimatedSprite,
     animations: [Animation; 4],
     action: Action,
-    next_action: Action,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -77,30 +76,22 @@ impl Player {
             anim,
             animations,
             action: Action::Idle,
-            next_action: Action::Idle,
         }
     }
 
     pub fn update(&mut self, grid: &HashMap<hex2d::Coordinate, Segment>) {
-        match (is_key_down(KeyCode::Left), is_key_down(KeyCode::Right)) {
-            (true, true) => self.next_action = Action::Sleep,
-            (false, true) => self.next_action = Action::Walk { right: true },
-            (true, false) => self.next_action = Action::Walk { right: false },
-            (false, false) => match self.next_action {
-                Action::Walk { .. } => {
-                    if let Action::Walk { .. } = self.action {
-                        self.next_action = Action::Idle;
-                    }
-                }
-                Action::Idle | Action::Sleep | Action::Grab => {}
-            },
-        }
+        let next_action = match (is_key_down(KeyCode::Left), is_key_down(KeyCode::Right)) {
+            (true, true) => Some(Action::Sleep),
+            (false, true) => Some(Action::Walk { right: true }),
+            (true, false) => Some(Action::Walk { right: false }),
+            (false, false) => None,
+        };
 
         self.speed += 1;
         // Only step the animation every few frames.
         let speed_limit = match self.action {
             Action::Walk { .. } => 3,
-            Action::Sleep => 10,
+            Action::Sleep => 30,
             Action::Idle => 10,
             Action::Grab => 8,
         };
@@ -144,11 +135,20 @@ impl Player {
                 Action::Grab => 3,
             };
             if self.i == self.animations[action_id].frames {
-                self.action = match self.action {
-                    Action::Sleep | Action::Walk { .. } | Action::Idle => self.next_action,
+                match self.action {
+                    Action::Sleep => match next_action {
+                        None | Some(Action::Sleep) => self.i -= 2,
+                        Some(action) => {
+                            self.action = action;
+                            self.i = 0;
+                        }
+                    },
+                    Action::Walk { .. } | Action::Idle => {
+                        self.action = next_action.unwrap_or(Action::Idle);
+                        self.i = 0;
+                    }
                     Action::Grab => todo!(),
-                };
-                self.i = 0;
+                }
             }
             self.anim.set_animation(action_id);
         }

@@ -87,6 +87,15 @@ impl Player {
             (true, false) => Some(Action::Walk { right: false }),
             (false, false) => None,
         };
+        
+        // The idle action can immediately be overwritten
+        if let Action::Idle = self.action {
+            if let Some(next_action) = next_action {
+                self.action = next_action;
+                self.i = 0;
+                self.speed = 0;
+            }
+        }
 
         self.speed += 1;
         // Only step the animation every few frames.

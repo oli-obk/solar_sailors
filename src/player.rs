@@ -26,6 +26,7 @@ enum Action {
     Idle,
     Walk { right: bool },
     Sleep,
+    Wake,
     Grab,
 }
 
@@ -92,6 +93,7 @@ impl Player {
         let speed_limit = match self.action {
             Action::Walk { .. } => 3,
             Action::Sleep => 30,
+            Action::Wake => 10,
             Action::Idle => 10,
             Action::Grab => 8,
         };
@@ -99,8 +101,7 @@ impl Player {
             self.speed = 0;
             self.i += 1;
             let (do_move, x) = match self.action {
-                Action::Idle => (false, 0),
-                Action::Sleep => (false, 0),
+                Action::Idle | Action::Wake | Action::Sleep => (false, 0),
                 Action::Walk { right: false } => (true, -2),
                 Action::Walk { right: true } => (true, 2),
                 Action::Grab => todo!(),
@@ -131,19 +132,19 @@ impl Player {
             let action_id = match self.action {
                 Action::Idle => 0,
                 Action::Walk { .. } => 1,
-                Action::Sleep => 2,
+                Action::Wake | Action::Sleep => 2,
                 Action::Grab => 3,
             };
             if self.i == self.animations[action_id].frames {
                 match self.action {
                     Action::Sleep => match next_action {
                         None | Some(Action::Sleep) => self.i -= 2,
-                        Some(action) => {
-                            self.action = action;
+                        Some(_) => {
+                            self.action = Action::Wake;
                             self.i = 0;
                         }
                     },
-                    Action::Walk { .. } | Action::Idle => {
+                    Action::Wake | Action::Walk { .. } | Action::Idle => {
                         self.action = next_action.unwrap_or(Action::Idle);
                         self.i = 0;
                     }
@@ -152,7 +153,12 @@ impl Player {
             }
             self.anim.set_animation(action_id);
         }
-        self.anim.set_frame(self.i);
+
+        self.anim.set_frame(match self.action {
+            Action::Idle | Action::Walk { .. } | Action::Sleep => self.i,
+            Action::Wake => 3 - self.i,
+            Action::Grab => todo!(),
+        });
     }
 
     pub(crate) fn draw(&self) {
@@ -176,7 +182,7 @@ impl Player {
         let flip_x = match self.action {
             Action::Idle => false,
             Action::Walk { right } => right,
-            Action::Sleep => false,
+            Action::Wake | Action::Sleep => false,
             Action::Grab => false,
         };
 

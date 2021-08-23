@@ -100,14 +100,12 @@ impl Player {
         if self.speed == speed_limit {
             self.speed = 0;
             self.i += 1;
-            let (do_move, x) = match self.action {
-                Action::Idle | Action::Wake | Action::Sleep => (false, 0),
-                Action::Walk { right: false } => (true, -2),
-                Action::Walk { right: true } => (true, 2),
-                Action::Grab => todo!(),
-            };
-            if do_move {
-                self.x += x;
+            if let Action::Walk { right } = self.action {
+                if right {
+                    self.x += 2;
+                } else {
+                    self.x -= 2;
+                }
                 if self.x.abs() > (SIZE / SQRT3) as i32 / SCALE / 2 {
                     if self.x > 0 {
                         self.side += 1;

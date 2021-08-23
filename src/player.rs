@@ -43,7 +43,7 @@ impl Player {
             Animation {
                 name: "idle".into(),
                 row: 0,
-                frames: 4,
+                frames: 2,
                 fps: 4,
             },
             Animation {
@@ -94,7 +94,7 @@ impl Player {
             Action::Walk { .. } => 3,
             Action::Sleep => 30,
             Action::Wake => 10,
-            Action::Idle => 10,
+            Action::Idle => 20,
             Action::Grab => 8,
         };
         if self.speed == speed_limit {

@@ -87,14 +87,27 @@ impl Player {
             (true, false) => Some(Action::Walk { right: false }),
             (false, false) => None,
         };
-        
-        // The idle action can immediately be overwritten
-        if let Action::Idle = self.action {
-            if let Some(next_action) = next_action {
-                self.action = next_action;
-                self.i = 0;
-                self.speed = 0;
+        match self.action {
+            // Wake up whenever in the final sleeping frames
+            Action::Sleep if self.i > 1 => match next_action {
+                None | Some(Action::Sleep) => {}
+                Some(_) => {
+                    self.action = Action::Wake;
+                    self.i = 0;
+                    self.speed = 0;
+                }
+            },
+            // The idle and walk action can immediately be overwritten
+            Action::Walk { .. } | Action::Idle => {
+                if let Some(next_action) = next_action {
+                    if next_action != self.action {
+                        self.action = next_action;
+                        self.i = 0;
+                        self.speed = 0;
+                    }
+                }
             }
+            _ => {}
         }
 
         self.speed += 1;
@@ -144,13 +157,7 @@ impl Player {
             };
             if self.i == self.animations[action_id].frames {
                 match self.action {
-                    Action::Sleep => match next_action {
-                        None | Some(Action::Sleep) => self.i -= 2,
-                        Some(_) => {
-                            self.action = Action::Wake;
-                            self.i = 0;
-                        }
-                    },
+                    Action::Sleep => self.i -= 2,
                     Action::Wake | Action::Walk { .. } | Action::Idle => {
                         self.action = next_action.unwrap_or(Action::Idle);
                         self.i = 0;

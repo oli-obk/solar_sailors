@@ -17,7 +17,7 @@ impl ControlledRange {
                 value,
                 min,
                 max,
-                speed: 0.01,
+                speed: 0.1,
             },
             reader,
         )

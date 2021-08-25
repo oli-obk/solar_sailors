@@ -1,10 +1,8 @@
 # in .github/workflows/continuous_deployment.yml
 name: Continuous deployment
 on:
-  workflow_run:
+  push:
     branches: [main]
-    workflows: [Continuous integration]
-    types: [completed]
 
 jobs:
   release:
@@ -18,6 +16,9 @@ jobs:
       - run: rustup target add wasm32-unknown-unknown
       - run: trunk build --release
       - run: cp target/wasm32-unknown-unknown/release/solar_sailors.wasm dist/solar_sailors.wasm
+      
+      - run: docker run --rm -v $(pwd)":/root/src" -w /root/src notfl3/cargo-apk cargo quad-apk build --release
+      - run: cp target/android-artifacts/release/apk/solar_sailors.apk dist/solar_sailors.apk
 
       - uses: peaceiris/actions-gh-pages@v3
         if: github.ref == 'refs/heads/main'

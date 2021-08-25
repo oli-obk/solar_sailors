@@ -158,7 +158,7 @@ impl crate::ship::Attachement for Sail {
     fn draw_controllable(&self, pos: Vec2, x: f32) {
         let (left, right) = self.rope_positions.get();
         let thickness = self.helper_line.abs() * 2.0;
-        if x.abs() > self.sail_width.min / 3.0 {
+        if x.abs() > self.sail_width.min / 2.0 {
             if x > 0.0 {
                 draw_line(pos, right, thickness, GREEN);
             } else {

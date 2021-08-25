@@ -31,7 +31,7 @@ fn window_conf() -> Conf {
 async fn main() {
     let mut player = Player::new((0, -1), 3);
     let screen = Rect::new(-400.0, -300.0, 800.0, 600.0);
-    let stars = Stars::new(100, screen);
+    let mut stars = Stars::default();
     let mut orbits = orbits::Orbits::new();
     orbits.insert(FRAC_PI_4, orbital::Orbit::circular(200.0));
     orbits.insert(
@@ -82,6 +82,7 @@ async fn main() {
     let mut window = GameWindow::Ship;
     loop {
         // Logic
+        stars.update();
         ship.update();
         photons.update();
         orbits.update();

@@ -92,9 +92,8 @@ async fn main() {
         }
 
         let mut cam = Camera2D::default();
-        let scale = (800.0 / screen_width()).max(600.0 / screen_height());
-        cam.zoom.x = 1.0 / (scale * screen_width() / 2.0);
-        cam.zoom.y = -1.0 / (scale * screen_height() / 2.0);
+        cam.zoom.x = 1.0 / (screen_width() / 2.0);
+        cam.zoom.y = -1.0 / (screen_height() / 2.0);
         set_camera(&cam);
 
         // Drawing

@@ -23,8 +23,7 @@ impl Stars {
     pub fn update(&mut self) {
         let w = screen_width();
         let h = screen_height();
-        let scale = (800.0 / screen_width()).max(600.0 / screen_height());
-        let mut rect = Rect::new(scale * -w / 2.0, scale * -h / 2.0, scale * w, scale * h);
+        let mut rect = Rect::new(-w / 2.0, -h / 2.0, w, h);
         if w != self.w || h != self.h {
             self.w = w;
             self.h = h;

@@ -108,7 +108,7 @@ async fn main() {
                 stars.draw();
                 photons.draw();
                 ship.draw();
-                player.draw();
+                player.draw(&ship.grid);
 
                 let pos = cam.screen_to_world(vec2(0.0, 0.0));
                 draw_text("M: view orbit", pos.x + 20.0, pos.y + 20.0, 30.0, DARKGRAY);

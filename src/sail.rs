@@ -20,6 +20,9 @@ pub(crate) struct Sail {
     pub current_angular_velocity: f32,
     /// The force with which the sail pulls.
     force: Sensor<f32>,
+
+    /// Thickness of the helper lines showing what is being controlled
+    helper_line: f32,
 }
 
 const SIDE: f32 = SIZE / 8.0;
@@ -54,6 +57,7 @@ impl Sail {
                 current_angular_velocity: 0.0,
                 force,
                 rope_positions,
+                helper_line: 0.0,
             },
             r2,
             f,
@@ -98,6 +102,11 @@ impl crate::ship::Attachement for Sail {
         if a.abs() > std::f32::consts::FRAC_PI_6 {
             // Sail uncontrollable
         }
+
+        self.helper_line += 0.03;
+        if self.helper_line > 1.0 {
+            self.helper_line -= 2.0;
+        }
     }
 
     fn draw(&self, pos: Vec2, angle: f32) {
@@ -134,7 +143,7 @@ impl crate::ship::Attachement for Sail {
     }
 
     fn control(&mut self, dir: bool, pos: f32) {
-        let controlled = if pos.abs() > self.sail_width.min / 3.0 {
+        let controlled = if pos.abs() > self.sail_width.min / 2.0 {
             if pos > 0.0 {
                 &mut self.right_rope
             } else {
@@ -144,6 +153,20 @@ impl crate::ship::Attachement for Sail {
             &mut self.sail_width
         };
         controlled.control(dir)
+    }
+
+    fn draw_controllable(&self, pos: Vec2, x: f32) {
+        let (left, right) = self.rope_positions.get();
+        let thickness = self.helper_line.abs() * 2.0;
+        if x.abs() > self.sail_width.min / 3.0 {
+            if x > 0.0 {
+                draw_line(pos, right, thickness, GREEN);
+            } else {
+                draw_line(pos, left, thickness, GREEN);
+            }
+        } else {
+            draw_line(left, right, thickness, GREEN);
+        }
     }
 }
 

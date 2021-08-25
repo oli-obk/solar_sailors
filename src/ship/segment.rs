@@ -39,6 +39,12 @@ impl<T: Attachement> Attachement for Option<T> {
             this.draw(pos, angle)
         }
     }
+
+    fn draw_controllable(&self, pos: Vec2, x: f32) {
+        if let Some(this) = self {
+            this.draw_controllable(pos, x)
+        }
+    }
 }
 
 impl<T: Attachement + ?Sized> Attachement for Box<T> {
@@ -52,6 +58,10 @@ impl<T: Attachement + ?Sized> Attachement for Box<T> {
 
     fn draw(&self, pos: Vec2, angle: f32) {
         T::draw(self, pos, angle)
+    }
+
+    fn draw_controllable(&self, pos: Vec2, x: f32) {
+        T::draw_controllable(self, pos, x)
     }
 }
 
@@ -70,6 +80,7 @@ pub trait Attachement {
     fn update(&mut self, pos: Vec2, angle: f32);
     fn control(&mut self, dir: bool, pos: f32);
     fn draw(&self, pos: Vec2, angle: f32);
+    fn draw_controllable(&self, pos: Vec2, x: f32);
 }
 
 #[derive(Default)]

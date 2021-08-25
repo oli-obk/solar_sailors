@@ -84,9 +84,20 @@ impl Player {
 
     fn attachement<'a>(
         &self,
+        grid: &'a HashMap<hex2d::Coordinate, Segment>,
+    ) -> Option<&'a (dyn Attachement + 'static)> {
+        grid.get(&self.pos).expect("crab not on grid").attachements[self.side as usize]
+            .as_ref()
+            .map(|a| &**a)
+    }
+
+    fn attachement_mut<'a>(
+        &self,
         grid: &'a mut HashMap<hex2d::Coordinate, Segment>,
     ) -> Option<&'a mut (dyn Attachement + 'static)> {
-        grid.get_mut(&self.pos).expect("crab not on grid").attachements[self.side as usize]
+        grid.get_mut(&self.pos)
+            .expect("crab not on grid")
+            .attachements[self.side as usize]
             .as_mut()
             .map(|a| &mut **a)
     }
@@ -124,7 +135,7 @@ impl Player {
                 }
             }
             Action::Use { up } => {
-                if let Some(attachement) = self.attachement(grid) {
+                if let Some(attachement) = self.attachement_mut(grid) {
                     attachement.control(up, self.x());
                 }
             }
@@ -196,7 +207,15 @@ impl Player {
         });
     }
 
-    pub(crate) fn draw(&self) {
+    pub(crate) fn draw(&self, grid: &HashMap<hex2d::Coordinate, Segment>) {
+        let (x, y) = self.pos.to_pixel(SPACING);
+        let center = vec2(x, y);
+
+        if let Some(attachement) = self.attachement(grid) {
+            attachement
+                .draw_controllable(center + ATTACHEMENT_OFFSETS[self.side as usize], self.x());
+        }
+
         let AnimationFrame {
             source_rect,
             mut dest_size,
@@ -207,12 +226,11 @@ impl Player {
         let base = ATTACHEMENT_OFFSETS[self.side as usize];
         let x = self.x() - dest_size.x / 2.0;
         let offset = x * base.perp().normalize();
-        let (x, y) = self.pos.to_pixel(SPACING);
         const ANIM_OFFSET: i32 = 32 * SCALE;
         // Lower the animation onto the object by shifting away the empty
         // pixels below it.
         const BASE_SCALE: f32 = (SIZE / 2.0 + ANIM_OFFSET as f32) / (SIZE / 2.0);
-        let pos = vec2(x, y) + base * BASE_SCALE + offset;
+        let pos = center + base * BASE_SCALE + offset;
 
         let flip_x = match self.action {
             Action::Idle => false,

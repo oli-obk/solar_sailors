@@ -28,6 +28,12 @@ impl<T: Attachement> Attachement for Option<T> {
         }
     }
 
+    fn control(&mut self, dir: bool, pos: f32) {
+        if let Some(this) = self {
+            this.control(dir, pos)
+        }
+    }
+
     fn draw(&self, pos: Vec2, angle: f32) {
         if let Some(this) = self {
             this.draw(pos, angle)
@@ -38,6 +44,10 @@ impl<T: Attachement> Attachement for Option<T> {
 impl<T: Attachement + ?Sized> Attachement for Box<T> {
     fn update(&mut self, pos: Vec2, angle: f32) {
         T::update(self, pos, angle)
+    }
+
+    fn control(&mut self, dir: bool, pos: f32) {
+        T::control(self, dir, pos)
     }
 
     fn draw(&self, pos: Vec2, angle: f32) {
@@ -58,6 +68,7 @@ impl<T: Element + ?Sized> Element for Box<T> {
 pub trait Content: Element {}
 pub trait Attachement {
     fn update(&mut self, pos: Vec2, angle: f32);
+    fn control(&mut self, dir: bool, pos: f32);
     fn draw(&self, pos: Vec2, angle: f32);
 }
 

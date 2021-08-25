@@ -3,15 +3,15 @@ use std::f32::consts::PI;
 use macroquad::prelude::*;
 
 use crate::{
-    controlled::ButtonControlledRange,
+    controlled::ControlledRange,
     datastructures::{Reader, Sensor},
     ship::SIZE,
 };
 
 pub(crate) struct Sail {
-    pub left_rope: ButtonControlledRange,
-    pub right_rope: ButtonControlledRange,
-    pub sail_width: ButtonControlledRange,
+    pub left_rope: ControlledRange,
+    pub right_rope: ControlledRange,
+    pub sail_width: ControlledRange,
     /// Computed in the update phase, processed by draw
     rope_positions: Sensor<(Vec2, Vec2)>,
     /// When the sail moves due to different rope lengths, this is all that actually changes.
@@ -39,9 +39,9 @@ impl Sail {
         Reader<f32>,
         Reader<f32>,
     ) {
-        let (sail_width, _) = ButtonControlledRange::new(min_sail_width, sail_width, KeyCode::W);
-        let (left_rope, lr) = ButtonControlledRange::new(1.0, left_rope, KeyCode::A);
-        let (right_rope, rr) = ButtonControlledRange::new(1.0, right_rope, KeyCode::D);
+        let (sail_width, _) = ControlledRange::new(min_sail_width, sail_width);
+        let (left_rope, lr) = ControlledRange::new(1.0, left_rope);
+        let (right_rope, rr) = ControlledRange::new(1.0, right_rope);
         let (rope_positions, r2) = Sensor::new(Default::default());
         let (force, f) = Sensor::new(0.0);
         let (current_angle, cur_a) = Sensor::new(current_angle);
@@ -66,10 +66,6 @@ impl Sail {
 
 impl crate::ship::Attachement for Sail {
     fn update(&mut self, pos: Vec2, _angle: f32) {
-        self.left_rope.update();
-        self.right_rope.update();
-        self.sail_width.update();
-
         let (left, right) = self.rope_positions();
         self.rope_positions.set((left + pos, right + pos));
 
@@ -135,6 +131,19 @@ impl crate::ship::Attachement for Sail {
         // Ropes
         draw_line(pos, left, 1.0, GRAY);
         draw_line(pos, right, 1.0, GRAY);
+    }
+
+    fn control(&mut self, dir: bool, pos: f32) {
+        let controlled = if pos.abs() > self.sail_width.min / 3.0 {
+            if pos > 0.0 {
+                &mut self.right_rope
+            } else {
+                &mut self.left_rope
+            }
+        } else {
+            &mut self.sail_width
+        };
+        controlled.control(dir)
     }
 }
 

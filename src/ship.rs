@@ -9,9 +9,14 @@ mod segments {
     pub use gauge::Gauge;
 }
 
-use crate::sail::angle2vec;
+mod attachements {
+    mod sail;
+    pub use sail::*;
+}
+
 pub use segment::*;
 pub use segments::*;
+pub use attachements::*;
 
 pub(crate) struct SpaceShip {
     pub(crate) pos: Vec2,

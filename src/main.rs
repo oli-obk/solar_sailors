@@ -4,17 +4,15 @@ use std::{
 };
 
 use macroquad::prelude::*;
-use sail::Sail;
 use ship::{Gauge, Segment, SpaceShip};
 use stars::Stars;
 
-use crate::{player::Player, ship::Attachement};
+use crate::{player::Player, ship::{Attachement, Sail}};
 
 mod controlled;
 mod datastructures;
 mod orbits;
 mod player;
-mod sail;
 mod ship;
 mod stars;
 

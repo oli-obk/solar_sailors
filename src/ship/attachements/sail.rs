@@ -194,7 +194,7 @@ pub fn angle2vec(angle: f32) -> Vec2 {
     vec2(x, y)
 }
 
-pub fn draw_line(a: Vec2, b: Vec2, thickness: f32, color: Color) {
+fn draw_line(a: Vec2, b: Vec2, thickness: f32, color: Color) {
     macroquad::prelude::draw_line(a.x, a.y, b.x, b.y, thickness, color)
 }
 

@@ -2,8 +2,6 @@ use std::f32::consts::FRAC_PI_2;
 
 use macroquad::prelude::*;
 
-use crate::ship::{SIZE, SQRT3};
-
 pub struct Map {
     pub texture: Texture2D,
     pub zoom: f32,

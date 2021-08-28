@@ -35,7 +35,7 @@ async fn main() {
     let map = Map {
         texture: orbit_render_target.texture,
         zoom: 0.1,
-        small_zoom: 0.04,
+        small_zoom: 1.0,
     };
     let mut orbits = orbits::Orbits::new();
     orbits.insert(FRAC_PI_4, orbital::Orbit::circular(200.0));

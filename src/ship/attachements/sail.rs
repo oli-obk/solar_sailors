@@ -142,17 +142,19 @@ impl crate::ship::Attachement for Sail {
         draw_line(pos, right, 1.0, GRAY);
     }
 
-    fn control(&mut self, dir: bool, pos: f32) {
-        let controlled = if pos.abs() > self.sail_width.min / 2.0 {
-            if pos > 0.0 {
-                &mut self.right_rope
+    fn control(&mut self, dir: Option<bool>, pos: f32) {
+        if let Some(dir) = dir {
+            let controlled = if pos.abs() > self.sail_width.min / 2.0 {
+                if pos > 0.0 {
+                    &mut self.right_rope
+                } else {
+                    &mut self.left_rope
+                }
             } else {
-                &mut self.left_rope
-            }
-        } else {
-            &mut self.sail_width
-        };
-        controlled.control(dir)
+                &mut self.sail_width
+            };
+            controlled.control(dir)
+        }
     }
 
     fn draw_controllable(&self, pos: Vec2, x: f32) {

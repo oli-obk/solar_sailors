@@ -125,18 +125,21 @@ impl Player {
                 }
             },
             // The idle and walk action can immediately be overwritten
-            Action::Walk { .. } | Action::Idle => {
-                if let Some(next_action) = next_action {
-                    if next_action != self.action {
-                        self.action = next_action;
-                        self.i = 0;
-                        self.speed = 0;
+            Action::Walk { .. } | Action::Idle | Action::Use { .. } => {
+                let next_action = next_action.unwrap_or(Action::Idle);
+                if next_action == self.action {
+                    let dir = match next_action {
+                        Action::Use { up } => Some(up),
+                        _ => None,
+                    };
+
+                    if let Some(attachement) = self.attachement_mut(grid) {
+                        attachement.control(dir, self.x());
                     }
-                }
-            }
-            Action::Use { up } => {
-                if let Some(attachement) = self.attachement_mut(grid) {
-                    attachement.control(up, self.x());
+                } else {
+                    self.action = next_action;
+                    self.i = 0;
+                    self.speed = 0;
                 }
             }
             _ => {}
@@ -168,7 +171,14 @@ impl Player {
                     }
                     self.side %= 6;
                     self.x *= -1;
+                    // Prevent oscillating on a corner
+                    if right {
+                        self.x += 2;
+                    } else {
+                        self.x -= 2;
+                    }
                     let coord = self.pos.neighbors()[self.side as usize];
+                    // Walk onto next hex if there is one
                     if grid.contains_key(&coord) {
                         self.pos = coord;
                         self.side += 3;

@@ -11,14 +11,15 @@ pub struct Map {
 impl crate::ship::Attachement for Map {
     fn update(&mut self, _pos: macroquad::prelude::Vec2, _angle: f32) {}
 
-    fn control(&mut self, dir: Option<bool>, x: f32) {
+    fn control(&mut self, dir: Option<bool>, x: Option<f32>) {
         if let Some(dir) = dir {
             if dir {
                 self.zoom *= 1.01;
             } else {
                 self.zoom /= 1.01;
             }
-        } else {
+        }
+        if let Some(x) = x {
             let new = 3.0 - (x.abs() / 10.0).min(2.0);
             self.small_zoom += (new - self.small_zoom) * 0.2;
         }
@@ -40,6 +41,4 @@ impl crate::ship::Attachement for Map {
             },
         );
     }
-
-    fn draw_controllable(&self, _pos: macroquad::prelude::Vec2, _x: f32) {}
 }

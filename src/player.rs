@@ -134,7 +134,7 @@ impl Player {
                     };
 
                     if let Some(attachement) = self.attachement_mut(grid) {
-                        attachement.control(dir, self.x());
+                        attachement.control(dir, Some(self.x()));
                     }
                 } else {
                     self.action = next_action;
@@ -164,6 +164,10 @@ impl Player {
                     self.x -= 2;
                 }
                 if self.x.abs() > (SIZE / SQRT3) as i32 / SCALE / 2 {
+                    // Notify attachement that we left
+                    if let Some(attachement) = self.attachement_mut(grid) {
+                        attachement.control(None, None);
+                    }
                     if self.x > 0 {
                         self.side += 1;
                     } else {
@@ -188,6 +192,10 @@ impl Player {
                             self.side += 1;
                         }
                         self.side %= 6;
+                        // Notify attachement that we arrived
+                        if let Some(attachement) = self.attachement_mut(grid) {
+                            attachement.control(None, Some(self.x()));
+                        }
                     }
                 }
             }
@@ -217,14 +225,9 @@ impl Player {
         });
     }
 
-    pub(crate) fn draw(&self, grid: &HashMap<hex2d::Coordinate, Segment>) {
+    pub(crate) fn draw(&self) {
         let (x, y) = self.pos.to_pixel(SPACING);
         let center = vec2(x, y);
-
-        if let Some(attachement) = self.attachement(grid) {
-            attachement
-                .draw_controllable(center + ATTACHEMENT_OFFSETS[self.side as usize], self.x());
-        }
 
         let AnimationFrame {
             source_rect,

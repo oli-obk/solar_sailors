@@ -116,7 +116,7 @@ async fn main() {
 
         stars.draw();
         ship.draw();
-        player.draw(&ship.grid);
+        player.draw();
 
         let pos = cam.screen_to_world(vec2(0.0, 0.0));
         draw_text(

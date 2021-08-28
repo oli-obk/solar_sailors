@@ -28,7 +28,7 @@ impl<T: Attachement> Attachement for Option<T> {
         }
     }
 
-    fn control(&mut self, dir: Option<bool>, pos: f32) {
+    fn control(&mut self, dir: Option<bool>, pos: Option<f32>) {
         if let Some(this) = self {
             this.control(dir, pos)
         }
@@ -39,12 +39,6 @@ impl<T: Attachement> Attachement for Option<T> {
             this.draw(pos, angle)
         }
     }
-
-    fn draw_controllable(&self, pos: Vec2, x: f32) {
-        if let Some(this) = self {
-            this.draw_controllable(pos, x)
-        }
-    }
 }
 
 impl<T: Attachement + ?Sized> Attachement for Box<T> {
@@ -52,16 +46,12 @@ impl<T: Attachement + ?Sized> Attachement for Box<T> {
         T::update(self, pos, angle)
     }
 
-    fn control(&mut self, dir: Option<bool>, pos: f32) {
+    fn control(&mut self, dir: Option<bool>, pos: Option<f32>) {
         T::control(self, dir, pos)
     }
 
     fn draw(&self, pos: Vec2, angle: f32) {
         T::draw(self, pos, angle)
-    }
-
-    fn draw_controllable(&self, pos: Vec2, x: f32) {
-        T::draw_controllable(self, pos, x)
     }
 }
 
@@ -78,9 +68,8 @@ impl<T: Element + ?Sized> Element for Box<T> {
 pub trait Content: Element {}
 pub trait Attachement {
     fn update(&mut self, pos: Vec2, angle: f32);
-    fn control(&mut self, dir: Option<bool>, pos: f32);
+    fn control(&mut self, dir: Option<bool>, pos: Option<f32>);
     fn draw(&self, pos: Vec2, angle: f32);
-    fn draw_controllable(&self, pos: Vec2, x: f32);
 }
 
 #[derive(Default)]

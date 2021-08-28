@@ -23,6 +23,7 @@ pub(crate) struct Sail {
 
     /// Thickness of the helper lines showing what is being controlled
     helper_line: f32,
+    helper_pos: Option<f32>,
 }
 
 const SIDE: f32 = SIZE / 8.0;
@@ -58,6 +59,7 @@ impl Sail {
                 force,
                 rope_positions,
                 helper_line: 0.0,
+                helper_pos: None,
             },
             r2,
             f,
@@ -102,11 +104,6 @@ impl crate::ship::Attachement for Sail {
         if a.abs() > std::f32::consts::FRAC_PI_6 {
             // Sail uncontrollable
         }
-
-        self.helper_line += 0.03;
-        if self.helper_line > 1.0 {
-            self.helper_line -= 2.0;
-        }
     }
 
     fn draw(&self, pos: Vec2, angle: f32) {
@@ -140,35 +137,42 @@ impl crate::ship::Attachement for Sail {
         // Ropes
         draw_line(pos, left, 1.0, GRAY);
         draw_line(pos, right, 1.0, GRAY);
-    }
 
-    fn control(&mut self, dir: Option<bool>, pos: f32) {
-        if let Some(dir) = dir {
-            let controlled = if pos.abs() > self.sail_width.min / 2.0 {
-                if pos > 0.0 {
-                    &mut self.right_rope
+        let thickness = self.helper_line.abs() * 2.0;
+        if let Some(helper_pos) = self.helper_pos {
+            if helper_pos.abs() > self.sail_width.min / 2.0 {
+                if helper_pos > 0.0 {
+                    draw_line(pos, right, thickness, GREEN);
                 } else {
-                    &mut self.left_rope
+                    draw_line(pos, left, thickness, GREEN);
                 }
             } else {
-                &mut self.sail_width
-            };
-            controlled.control(dir)
+                draw_line(left, right, thickness, GREEN);
+            }
         }
     }
 
-    fn draw_controllable(&self, pos: Vec2, x: f32) {
-        let (left, right) = self.rope_positions.get();
-        let thickness = self.helper_line.abs() * 2.0;
-        if x.abs() > self.sail_width.min / 2.0 {
-            if x > 0.0 {
-                draw_line(pos, right, thickness, GREEN);
-            } else {
-                draw_line(pos, left, thickness, GREEN);
+    fn control(&mut self, dir: Option<bool>, pos: Option<f32>) {
+        if let Some(pos) = pos {
+            if let Some(dir) = dir {
+                let controlled = if pos.abs() > self.sail_width.min / 2.0 {
+                    if pos > 0.0 {
+                        &mut self.right_rope
+                    } else {
+                        &mut self.left_rope
+                    }
+                } else {
+                    &mut self.sail_width
+                };
+                controlled.control(dir)
             }
-        } else {
-            draw_line(left, right, thickness, GREEN);
+
+            self.helper_line += 0.03;
+            if self.helper_line > 1.0 {
+                self.helper_line -= 2.0;
+            }
         }
+        self.helper_pos = pos;
     }
 }
 

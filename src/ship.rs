@@ -11,7 +11,9 @@ mod segments {
 
 mod attachements {
     mod sail;
+    mod map;
     pub use sail::*;
+    pub use map::*;
 }
 
 pub use segment::*;

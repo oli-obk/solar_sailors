@@ -7,7 +7,10 @@ use macroquad::prelude::*;
 use ship::{Gauge, Segment, SpaceShip};
 use stars::Stars;
 
-use crate::{player::Player, ship::{Attachement, Sail}};
+use crate::{
+    player::Player,
+    ship::{Attachement, Map, Sail},
+};
 
 mod controlled;
 mod datastructures;
@@ -28,6 +31,12 @@ fn window_conf() -> Conf {
 async fn main() {
     let mut player = Player::new((0, -1), 3);
     let mut stars = Stars::default();
+    let orbit_render_target = render_target(1024, 1024);
+    let map = Map {
+        texture: orbit_render_target.texture,
+        zoom: 0.1,
+        small_zoom: 0.04,
+    };
     let mut orbits = orbits::Orbits::new();
     orbits.insert(FRAC_PI_4, orbital::Orbit::circular(200.0));
     orbits.insert(
@@ -48,6 +57,7 @@ async fn main() {
     };
     let mut attachements: [Option<Box<dyn Attachement>>; 6] = Default::default();
     attachements[1] = Some(Box::new(sail));
+    attachements[4] = Some(Box::new(map));
     ship.grid.insert(
         (0, 0).into(),
         Segment {
@@ -90,6 +100,13 @@ async fn main() {
         }
 
         let mut cam = Camera2D::default();
+        cam.zoom /= 200.0;
+        cam.render_target = Some(orbit_render_target);
+        set_camera(&cam);
+        clear_background(Color::default());
+        orbits.draw();
+
+        let mut cam = Camera2D::default();
         cam.zoom.x = 1.0 / (screen_width() / 2.0);
         cam.zoom.y = -1.0 / (screen_height() / 2.0);
         set_camera(&cam);
@@ -97,34 +114,18 @@ async fn main() {
         // Drawing
         clear_background(BLACK);
 
-        match window {
-            GameWindow::Ship => {
-                stars.draw();
-                ship.draw();
-                player.draw(&ship.grid);
+        stars.draw();
+        ship.draw();
+        player.draw(&ship.grid);
 
-                let pos = cam.screen_to_world(vec2(0.0, 0.0));
-                draw_text("M: view orbit", pos.x + 20.0, pos.y + 20.0, 30.0, DARKGRAY);
-                draw_text(
-                    "WASD: control crab, up/down acts on things next to crab",
-                    pos.x + 20.0,
-                    pos.y + 40.0,
-                    30.0,
-                    DARKGRAY,
-                );
-            }
-            GameWindow::Orbit => {
-                orbits.draw();
-                let pos = cam.screen_to_world(vec2(0.0, 0.0));
-                draw_text(
-                    "M: return to ship",
-                    pos.x + 20.0,
-                    pos.y + 20.0,
-                    30.0,
-                    DARKGRAY,
-                );
-            }
-        }
+        let pos = cam.screen_to_world(vec2(0.0, 0.0));
+        draw_text(
+            "WASD: control crab, up/down acts on things next to crab",
+            pos.x + 20.0,
+            pos.y + 20.0,
+            30.0,
+            DARKGRAY,
+        );
 
         // Let the engine actually do stuff
 

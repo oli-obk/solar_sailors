@@ -2,7 +2,7 @@ use std::{collections::HashMap, f32::consts::TAU};
 
 use macroquad::prelude::*;
 
-use crate::save::{load, save};
+use crate::save::Saveable;
 
 struct Orbit {
     angle: f32,
@@ -13,11 +13,10 @@ struct Object {
     orbit: Orbit,
 }
 
-#[derive(Default)]
 pub struct Orbits {
     objects: HashMap<usize, Object>,
     next_id: usize,
-    t: f32,
+    t: Saveable<f32>,
 }
 
 pub struct ObjectId(usize);
@@ -27,8 +26,9 @@ const MOON_SIZE: f32 = 20.0;
 impl Orbits {
     pub fn load() -> Self {
         Self {
-            t: load("time").unwrap_or_default(),
-            ..Self::default()
+            objects: Default::default(),
+            next_id: 0,
+            t: Saveable::default("time"),
         }
     }
     pub fn insert(&mut self, angle: f32, orbit: orbital::Orbit) -> ObjectId {
@@ -43,13 +43,12 @@ impl Orbits {
         ObjectId(id)
     }
     pub fn update(&mut self) {
-        self.t += 10.0;
-        save("time", self.t);
+        self.t.update(|t| *t += 10.0);
         // only need to do something for objects under thrust
     }
     pub fn draw(&self) {
         for object in self.objects.values() {
-            let angle = object.orbit.orbit.angle_at(1.0, self.t);
+            let angle = object.orbit.orbit.angle_at(1.0, *self.t);
             let radius = object.orbit.orbit.r(angle);
             let system_angle = angle + object.orbit.angle;
             let (y, x) = system_angle.sin_cos();

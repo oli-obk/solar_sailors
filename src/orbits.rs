@@ -2,6 +2,8 @@ use std::{collections::HashMap, f32::consts::TAU};
 
 use macroquad::prelude::*;
 
+use crate::save::{load, save};
+
 struct Orbit {
     angle: f32,
     orbit: orbital::Orbit,
@@ -23,8 +25,11 @@ pub struct ObjectId(usize);
 const MOON_SIZE: f32 = 20.0;
 
 impl Orbits {
-    pub fn new() -> Self {
-        Self::default()
+    pub fn load() -> Self {
+        Self {
+            t: load("time").unwrap_or_default(),
+            ..Self::default()
+        }
     }
     pub fn insert(&mut self, angle: f32, orbit: orbital::Orbit) -> ObjectId {
         let id = self.next_id;
@@ -39,6 +44,7 @@ impl Orbits {
     }
     pub fn update(&mut self) {
         self.t += 10.0;
+        save("time", self.t);
         // only need to do something for objects under thrust
     }
     pub fn draw(&self) {
@@ -73,6 +79,12 @@ impl Orbits {
             }
         }
         draw_circle(0.0, 0.0, MOON_SIZE, GRAY);
-        draw_rectangle(-MOON_SIZE, 0.0, MOON_SIZE*2.0, -1000.0, Color::new(0.0, 0.0, 0.0, 0.5));
+        draw_rectangle(
+            -MOON_SIZE,
+            0.0,
+            MOON_SIZE * 2.0,
+            -1000.0,
+            Color::new(0.0, 0.0, 0.0, 0.5),
+        );
     }
 }

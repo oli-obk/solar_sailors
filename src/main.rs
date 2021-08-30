@@ -9,6 +9,7 @@ use stars::Stars;
 
 use crate::{
     player::Player,
+    save::*,
     ship::{Attachement, Map, Sail},
 };
 
@@ -16,6 +17,7 @@ mod controlled;
 mod datastructures;
 mod orbits;
 mod player;
+mod save;
 mod ship;
 mod stars;
 
@@ -29,7 +31,13 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    let mut player = Player::new((0, -1), 3);
+    let mut player = Player::new(
+        (
+            load("player/x").unwrap_or(0),
+            load("player/y").unwrap_or(-1),
+        ),
+        load("player/side").unwrap_or(3),
+    );
     let mut stars = Stars::default();
     let orbit_render_target = render_target(1024, 1024);
     let map = Map {
@@ -37,7 +45,7 @@ async fn main() {
         zoom: 0.1,
         small_zoom: 1.0,
     };
-    let mut orbits = orbits::Orbits::new();
+    let mut orbits = orbits::Orbits::load();
     orbits.insert(FRAC_PI_4, orbital::Orbit::circular(200.0));
     orbits.insert(
         0.0,

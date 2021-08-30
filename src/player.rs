@@ -6,9 +6,9 @@ use macroquad::prelude::{
     *,
 };
 
-use crate::ship::{
+use crate::{save::{save, load}, ship::{
     Attachement, Segment, ATTACHEMENT_ANGLES, ATTACHEMENT_OFFSETS, SIZE, SPACING, SQRT3,
-};
+}};
 
 pub struct Player {
     pos: Coordinate,
@@ -75,7 +75,7 @@ impl Player {
             texture,
             speed: 0,
             i: 0,
-            x: 0,
+            x: load("player/side_pos").unwrap_or_default(),
             anim,
             animations,
             action: Action::Idle,
@@ -223,6 +223,11 @@ impl Player {
             Action::Use { up: true } => self.i,
             Action::Use { up: false } => 3 - self.i,
         });
+
+        save("player/x", self.pos.x);
+        save("player/y", self.pos.y);
+        save("player/side", self.side);
+        save("player/side_pos", self.x);
     }
 
     pub(crate) fn draw(&self) {

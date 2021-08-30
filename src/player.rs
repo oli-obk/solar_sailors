@@ -6,17 +6,17 @@ use macroquad::prelude::{
     *,
 };
 
-use crate::{save::{save, load}, ship::{
+use crate::{save::{Saveable, save}, ship::{
     Attachement, Segment, ATTACHEMENT_ANGLES, ATTACHEMENT_OFFSETS, SIZE, SPACING, SQRT3,
 }};
 
 pub struct Player {
     pos: Coordinate,
-    side: u8,
+    side: Saveable<u8>,
     /// Used to reduce the speed of animations.
     speed: u32,
     i: u32,
-    x: i32,
+    x: Saveable<i32>,
     texture: Texture2D,
     anim: AnimatedSprite,
     animations: [Animation; 4],
@@ -71,11 +71,11 @@ impl Player {
 
         Self {
             pos: coord.into(),
-            side,
+            side: Saveable::new(side, "player/side"),
             texture,
             speed: 0,
             i: 0,
-            x: load("player/side_pos").unwrap_or_default(),
+            x: Saveable::default("player/side_pos"),
             anim,
             animations,
             action: Action::Idle,
@@ -86,7 +86,7 @@ impl Player {
         &self,
         grid: &'a HashMap<hex2d::Coordinate, Segment>,
     ) -> Option<&'a (dyn Attachement + 'static)> {
-        grid.get(&self.pos).expect("crab not on grid").attachements[self.side as usize]
+        grid.get(&self.pos).expect("crab not on grid").attachements[*self.side as usize]
             .as_ref()
             .map(|a| &**a)
     }
@@ -97,7 +97,7 @@ impl Player {
     ) -> Option<&'a mut (dyn Attachement + 'static)> {
         grid.get_mut(&self.pos)
             .expect("crab not on grid")
-            .attachements[self.side as usize]
+            .attachements[*self.side as usize]
             .as_mut()
             .map(|a| &mut **a)
     }
@@ -181,7 +181,7 @@ impl Player {
                     } else {
                         self.x -= 2;
                     }
-                    let coord = self.pos.neighbors()[self.side as usize];
+                    let coord = self.pos.neighbors()[*self.side as usize];
                     // Walk onto next hex if there is one
                     if grid.contains_key(&coord) {
                         self.pos = coord;
@@ -226,8 +226,6 @@ impl Player {
 
         save("player/x", self.pos.x);
         save("player/y", self.pos.y);
-        save("player/side", self.side);
-        save("player/side_pos", self.x);
     }
 
     pub(crate) fn draw(&self) {
@@ -241,7 +239,7 @@ impl Player {
 
         dest_size *= SCALE as f32;
 
-        let base = ATTACHEMENT_OFFSETS[self.side as usize];
+        let base = ATTACHEMENT_OFFSETS[*self.side as usize];
         let x = self.x() - dest_size.x / 2.0;
         let offset = x * base.perp().normalize();
         const ANIM_OFFSET: i32 = 32 * SCALE;
@@ -265,7 +263,7 @@ impl Player {
             DrawTextureParams {
                 dest_size: Some(dest_size),
                 source: Some(source_rect),
-                rotation: ATTACHEMENT_ANGLES[self.side as usize],
+                rotation: ATTACHEMENT_ANGLES[*self.side as usize],
                 pivot: Some(pos),
                 flip_x,
                 ..Default::default()
@@ -274,7 +272,7 @@ impl Player {
     }
 
     fn x(&self) -> f32 {
-        (self.x * SCALE) as f32
+        (*self.x * SCALE) as f32
     }
 }
 

@@ -1,4 +1,9 @@
-use std::{fmt::Debug, ops::Deref, str::FromStr};
+use std::{
+    cmp::Ordering,
+    fmt::Debug,
+    ops::{AddAssign, Deref, MulAssign, RemAssign, SubAssign},
+    str::FromStr,
+};
 
 pub fn save(key: impl ToString, value: impl ToString) {
     quad_storage::STORAGE
@@ -34,27 +39,29 @@ pub struct Saveable<T> {
 
 impl<T: Save> Saveable<T> {
     pub fn new(value: T, key: impl ToString) -> Self {
-        Self {
+        let mut this = Self {
             value,
             key: key.to_string(),
-        }
+        };
+        this.load();
+        this
     }
 
     pub fn default(key: impl ToString) -> Self
     where
         T: Default,
     {
-        let mut this = Self::new(Default::default(), key);
-        this.load();
-        this
+        Self::new(Default::default(), key)
     }
 
-    pub fn save(&self) {
+    fn save(&self) {
         self.value.save(&self.key)
     }
-    pub fn load(&mut self) {
+
+    fn load(&mut self) {
         self.value.load(&self.key)
     }
+
     pub fn update(&mut self, f: impl FnOnce(&mut T)) {
         f(&mut self.value);
         self.save()
@@ -66,6 +73,42 @@ impl<T> Deref for Saveable<T> {
 
     fn deref(&self) -> &Self::Target {
         &self.value
+    }
+}
+
+impl<T: Save + AddAssign> AddAssign<T> for Saveable<T> {
+    fn add_assign(&mut self, rhs: T) {
+        self.update(|val| *val += rhs)
+    }
+}
+
+impl<T: Save + MulAssign> MulAssign<T> for Saveable<T> {
+    fn mul_assign(&mut self, rhs: T) {
+        self.update(|val| *val *= rhs)
+    }
+}
+
+impl<T: Save + SubAssign> SubAssign<T> for Saveable<T> {
+    fn sub_assign(&mut self, rhs: T) {
+        self.update(|val| *val -= rhs)
+    }
+}
+
+impl<T: Save + RemAssign> RemAssign<T> for Saveable<T> {
+    fn rem_assign(&mut self, rhs: T) {
+        self.update(|val| *val %= rhs)
+    }
+}
+
+impl<T: PartialEq> PartialEq<T> for Saveable<T> {
+    fn eq(&self, other: &T) -> bool {
+        self.value.eq(other)
+    }
+}
+
+impl<T: PartialOrd> PartialOrd<T> for Saveable<T> {
+    fn partial_cmp(&self, other: &T) -> Option<Ordering> {
+        self.value.partial_cmp(other)
     }
 }
 

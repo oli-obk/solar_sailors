@@ -43,7 +43,7 @@ impl Orbits {
         ObjectId(id)
     }
     pub fn update(&mut self) {
-        self.t.update(|t| *t += 10.0);
+        self.t += 10.0;
         // only need to do something for objects under thrust
     }
     pub fn draw(&self) {

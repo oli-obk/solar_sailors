@@ -36,7 +36,7 @@ async fn main() {
             load("player/x").unwrap_or(0),
             load("player/y").unwrap_or(-1),
         ),
-        load("player/side").unwrap_or(3),
+        3,
     );
     let mut stars = Stars::default();
     let orbit_render_target = render_target(1024, 1024);

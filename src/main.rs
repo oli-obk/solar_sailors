@@ -9,7 +9,6 @@ use stars::Stars;
 
 use crate::{
     player::Player,
-    save::*,
     ship::{Attachement, Map, Sail},
 };
 
@@ -31,13 +30,7 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    let mut player = Player::new(
-        (
-            load("player/x").unwrap_or(0),
-            load("player/y").unwrap_or(-1),
-        ),
-        3,
-    );
+    let mut player = Player::new((0, -1), 3);
     let mut stars = Stars::default();
     let orbit_render_target = render_target(1024, 1024);
     let map = Map {

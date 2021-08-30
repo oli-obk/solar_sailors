@@ -1,9 +1,11 @@
 use std::{
     cmp::Ordering,
-    fmt::Debug,
-    ops::{AddAssign, Deref, MulAssign, RemAssign, SubAssign},
+    fmt::{Debug, Display},
+    ops::{AddAssign, Deref, DerefMut, MulAssign, RemAssign, SubAssign},
     str::FromStr,
 };
+
+use hex2d::Coordinate;
 
 pub fn save(key: impl ToString, value: impl ToString) {
     quad_storage::STORAGE
@@ -28,8 +30,8 @@ pub fn try_load<T: FromStr>(key: impl ToString) -> Option<Result<T, T::Err>> {
 }
 
 pub trait Save {
-    fn save(&self, key: impl ToString);
-    fn load(&mut self, key: impl ToString);
+    fn save(&self, key: impl Display);
+    fn load(&mut self, key: impl Display);
 }
 
 pub struct Saveable<T> {
@@ -37,10 +39,12 @@ pub struct Saveable<T> {
     key: String,
 }
 
+pub type ComplexSaveable<T> = Saveable<ComplexSave<T>>;
+
 impl<T: Save> Saveable<T> {
-    pub fn new(value: T, key: impl ToString) -> Self {
+    pub fn new(value: impl Into<T>, key: impl ToString) -> Self {
         let mut this = Self {
-            value,
+            value: value.into(),
             key: key.to_string(),
         };
         this.load();
@@ -51,7 +55,7 @@ impl<T: Save> Saveable<T> {
     where
         T: Default,
     {
-        Self::new(Default::default(), key)
+        Self::new(T::default(), key)
     }
 
     fn save(&self) {
@@ -65,6 +69,9 @@ impl<T: Save> Saveable<T> {
     pub fn update(&mut self, f: impl FnOnce(&mut T)) {
         f(&mut self.value);
         self.save()
+    }
+    pub fn set(&mut self, t: impl Into<T>) {
+        self.update(|v| *v = t.into());
     }
 }
 
@@ -125,5 +132,38 @@ where
         if let Some(val) = load(key) {
             *self = val;
         }
+    }
+}
+
+pub struct ComplexSave<T>(T);
+
+impl<T> From<T> for ComplexSave<T> {
+    fn from(t: T) -> Self {
+        Self(t)
+    }
+}
+
+impl<T> Deref for ComplexSave<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+impl<T> DerefMut for ComplexSave<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl Save for ComplexSave<Coordinate> {
+    fn save(&self, key: impl Display) {
+        self.x.save(format_args!("{}/x", key));
+        self.y.save(format_args!("{}/y", key));
+    }
+
+    fn load(&mut self, key: impl Display) {
+        self.x.load(format_args!("{}/x", key));
+        self.y.load(format_args!("{}/y", key));
     }
 }

@@ -6,12 +6,13 @@ use macroquad::prelude::{
     *,
 };
 
-use crate::{save::{Saveable, save}, ship::{
-    Attachement, Segment, ATTACHEMENT_ANGLES, ATTACHEMENT_OFFSETS, SIZE, SPACING, SQRT3,
-}};
+use crate::{
+    save::{save, ComplexSaveable, Saveable},
+    ship::{Attachement, Segment, ATTACHEMENT_ANGLES, ATTACHEMENT_OFFSETS, SIZE, SPACING, SQRT3},
+};
 
 pub struct Player {
-    pos: Coordinate,
+    pos: ComplexSaveable<Coordinate>,
     side: Saveable<u8>,
     /// Used to reduce the speed of animations.
     speed: u32,
@@ -70,7 +71,7 @@ impl Player {
         let anim = AnimatedSprite::new(32, 32, &animations, false);
 
         Self {
-            pos: coord.into(),
+            pos: Saveable::new(coord.into(), "player"),
             side: Saveable::new(side, "player/side"),
             texture,
             speed: 0,
@@ -184,7 +185,7 @@ impl Player {
                     let coord = self.pos.neighbors()[*self.side as usize];
                     // Walk onto next hex if there is one
                     if grid.contains_key(&coord) {
-                        self.pos = coord;
+                        self.pos.set(coord);
                         self.side += 3;
                         if self.x > 0 {
                             self.side -= 1;

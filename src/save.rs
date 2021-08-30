@@ -7,11 +7,10 @@ use std::{
 
 use hex2d::Coordinate;
 
+mod storage;
+
 pub fn save(key: impl ToString, value: impl ToString) {
-    quad_storage::STORAGE
-        .lock()
-        .unwrap()
-        .set(&key.to_string(), &value.to_string())
+    storage::set(&key.to_string(), &value.to_string())
 }
 
 pub fn load<T: FromStr>(key: impl ToString) -> Option<T>
@@ -22,10 +21,7 @@ where
 }
 
 pub fn try_load<T: FromStr>(key: impl ToString) -> Option<Result<T, T::Err>> {
-    quad_storage::STORAGE
-        .lock()
-        .unwrap()
-        .get(&key.to_string())
+    storage::get(&key.to_string())
         .map(|s| s.parse())
 }
 

@@ -1,3 +1,5 @@
+
+#[cfg(not(target_arch = "wasm32"))]
 use std::path::PathBuf;
 
 pub fn set(key: &str, value: &str) {
@@ -17,7 +19,7 @@ pub fn set(key: &str, value: &str) {
     }
 }
 
-#[cfg(not(arget_arch = "wasm32"))]
+#[cfg(not(target_arch = "wasm32"))]
 fn path(key: &str) -> PathBuf {
     let mut path = directories::ProjectDirs::from("", "", "solar_sailors")
         .map(|dirs| dirs.data_local_dir().to_owned())

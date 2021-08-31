@@ -7,7 +7,7 @@ use macroquad::prelude::{
 };
 
 use crate::{
-    save::{save, ComplexSaveable, Saveable},
+    save::{ComplexSaveable, Saveable},
     ship::{Attachement, Segment, ATTACHEMENT_ANGLES, ATTACHEMENT_OFFSETS, SIZE, SPACING, SQRT3},
 };
 
@@ -224,9 +224,6 @@ impl Player {
             Action::Use { up: true } => self.i,
             Action::Use { up: false } => 3 - self.i,
         });
-
-        save("player/x", self.pos.x);
-        save("player/y", self.pos.y);
     }
 
     pub(crate) fn draw(&self) {

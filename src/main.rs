@@ -86,7 +86,7 @@ async fn main() {
     );
 
     let mut window = GameWindow::Ship;
-    loop {
+    save::transaction_loop(|| {
         // Logic
         stars.update();
         ship.update();
@@ -130,8 +130,9 @@ async fn main() {
 
         // Let the engine actually do stuff
 
-        next_frame().await
-    }
+        next_frame()
+    })
+    .await;
 }
 
 enum GameWindow {

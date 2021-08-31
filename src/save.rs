@@ -8,19 +8,20 @@ use std::{
 use hex2d::Coordinate;
 
 mod storage;
+pub use storage::transaction_loop;
 
-pub fn save(key: impl ToString, value: impl ToString) {
+fn save(key: impl ToString, value: impl ToString) {
     storage::set(&key.to_string(), &value.to_string())
 }
 
-pub fn load<T: FromStr>(key: impl ToString) -> Option<T>
+fn load<T: FromStr>(key: impl ToString) -> Option<T>
 where
     T::Err: Debug,
 {
     try_load(key).map(Result::unwrap)
 }
 
-pub fn try_load<T: FromStr>(key: impl ToString) -> Option<Result<T, T::Err>> {
+fn try_load<T: FromStr>(key: impl ToString) -> Option<Result<T, T::Err>> {
     storage::get(&key.to_string())
         .map(|s| s.parse())
 }

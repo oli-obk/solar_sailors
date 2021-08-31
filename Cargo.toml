@@ -7,12 +7,13 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+copy_dir = "0.1.2"
 hex2d = {version = "1.1.0", default-features = false}
 macroquad = {version = "0.3", default-features = false}
 orbital = {path = "orbital", version = "0.1"}
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-quad-storage-sys = { git = "https://github.com/oli-obk/quad-storage", version = "0.1.0" }
+quad-storage-sys = "0.1.0"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 directories = "3.0.2"

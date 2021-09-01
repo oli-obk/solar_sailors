@@ -1,6 +1,9 @@
 #[cfg(not(target_arch = "wasm32"))]
 use std::path::PathBuf;
-use std::{future::Future, sync::atomic::{AtomicBool, Ordering}};
+use std::{
+    future::Future,
+    sync::atomic::{AtomicBool, Ordering},
+};
 
 pub fn set(key: &str, value: &str) {
     assert!(TRANSACTION.load(Ordering::Relaxed));
@@ -74,9 +77,26 @@ pub async fn transaction_loop<F: Future<Output = ()>>(mut f: impl FnMut() -> F) 
         // Use the next frame.
         odd = !odd;
         // Preserve previous state.
-        let dest = path(&(odd as u8).to_string());
-        std::fs::remove_dir_all(&dest).unwrap();
-        copy_dir::copy_dir(path(&((!odd) as u8).to_string()), dest).unwrap();
+
+        #[cfg(target_arch = "wasm32")]
+        {
+            use quad_storage_sys::*;
+            let oddstr = format!("{}/", (!odd) as u8);
+            for i in 0..len() {
+                let key = key(i).unwrap();
+                if key.starts_with(&oddstr) {
+                    let new_key = format!("{}/{}", odd as u8, &key[1..]);
+                    let val = get(&key).unwrap();
+                    set(&new_key, &val);
+                }
+            }
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let dest = path(&(odd as u8).to_string());
+            std::fs::remove_dir_all(&dest).unwrap();
+            copy_dir::copy_dir(path(&((!odd) as u8).to_string()), dest).unwrap();
+        }
         // Let all the regular storage ops know what prefix to use.
         ODD.store(odd, Ordering::Relaxed);
         // Perform transaction

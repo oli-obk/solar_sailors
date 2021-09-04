@@ -1,31 +1,30 @@
+use std::future::Future;
 #[cfg(not(target_arch = "wasm32"))]
 use std::path::PathBuf;
-use std::{
-    future::Future,
-    sync::atomic::{AtomicBool, Ordering},
-};
+#[cfg(not(target_arch = "wasm32"))]
+use std::sync::atomic::{AtomicBool, Ordering};
 
+#[cfg(not(target_arch = "wasm32"))]
 pub fn set(key: &str, value: &str) {
     assert!(TRANSACTION.load(Ordering::Relaxed));
     let odd = ODD.load(Ordering::Relaxed);
     set_inner(&format!("{}/{}", odd as u8, key), value)
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn set_inner(key: &str, value: &str) {
-    #[cfg(target_arch = "wasm32")]
-    {
-        quad_storage_sys::set(key, value)
-    }
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        let path = path(key);
-        if let Some(parent) = path.parent() {
-            if !parent.exists() {
-                std::fs::create_dir_all(parent).unwrap();
-            }
+    let path = path(key);
+    if let Some(parent) = path.parent() {
+        if !parent.exists() {
+            std::fs::create_dir_all(parent).unwrap();
         }
-        std::fs::write(path, value).unwrap();
     }
+    std::fs::write(path, value).unwrap();
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn set(key: &str, value: &str) {
+    quad_indexed_db::set(key, value)
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -40,32 +39,43 @@ fn path(key: &str) -> PathBuf {
     path
 }
 
-pub fn get(key: &str) -> Option<String> {
+#[cfg(target_arch = "wasm32")]
+pub fn get(key: &str) -> impl Future<Output = Option<String>> {
+    quad_indexed_db::get(key)
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn get(key: &str) -> impl Future<Output = Option<String>> {
     // Only do it while in the "loading" stage, not during the game itself,
     // as you may get inconsistent state.
     assert!(!TRANSACTION.load(Ordering::Relaxed));
     // Always read from the last successful frame.
     // If there was no previous successful frame, immediately bail out, there can't
     // be any actual values anyway.
-    let odd: bool = get_inner("odd")?.parse().unwrap();
-    get_inner(&format!("{}/{}", odd as u8, key))
+    let val = get_inner("odd").and_then(|odd| {
+        let odd: bool = odd.parse().unwrap();
+        get_inner(&format!("{}/{}", odd as u8, key))
+    });
+    async move { val }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn get_inner(key: &str) -> Option<String> {
-    #[cfg(target_arch = "wasm32")]
-    {
-        quad_storage_sys::get(key)
-    }
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        let path = path(key);
-        std::fs::read_to_string(path).ok()
-    }
+    let path = path(key);
+    std::fs::read_to_string(path).ok()
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 static ODD: AtomicBool = AtomicBool::new(false);
+#[cfg(not(target_arch = "wasm32"))]
 static TRANSACTION: AtomicBool = AtomicBool::new(false);
 
+#[cfg(target_arch = "wasm32")]
+pub async fn transaction_loop<F: Future<Output = ()>>(f: impl FnMut() -> F) {
+    quad_indexed_db::transaction(f).await
+}
+
+#[cfg(not(target_arch = "wasm32"))]
 pub async fn transaction_loop<F: Future<Output = ()>>(mut f: impl FnMut() -> F) {
     assert_eq!(
         TRANSACTION.compare_exchange(false, true, Ordering::Relaxed, Ordering::Relaxed),
@@ -78,25 +88,9 @@ pub async fn transaction_loop<F: Future<Output = ()>>(mut f: impl FnMut() -> F) 
         odd = !odd;
         // Preserve previous state.
 
-        #[cfg(target_arch = "wasm32")]
-        {
-            use quad_storage_sys::*;
-            let oddstr = format!("{}/", (!odd) as u8);
-            for i in 0..len() {
-                let key = key(i).unwrap();
-                if key.starts_with(&oddstr) {
-                    let new_key = format!("{}/{}", odd as u8, &key[1..]);
-                    let val = get(&key).unwrap();
-                    set(&new_key, &val);
-                }
-            }
-        }
-        #[cfg(not(target_arch = "wasm32"))]
-        {
-            let dest = path(&(odd as u8).to_string());
-            std::fs::remove_dir_all(&dest).unwrap();
-            copy_dir::copy_dir(path(&((!odd) as u8).to_string()), dest).unwrap();
-        }
+        let dest = path(&(odd as u8).to_string());
+        std::fs::remove_dir_all(&dest).unwrap();
+        copy_dir::copy_dir(path(&((!odd) as u8).to_string()), dest).unwrap();
         // Let all the regular storage ops know what prefix to use.
         ODD.store(odd, Ordering::Relaxed);
         // Perform transaction

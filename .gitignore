@@ -1,2 +1,3 @@
-/target
+target
 local.data
+quad_indexed_db/Cargo.lock

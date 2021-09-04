@@ -1,3 +1,6 @@
+#![feature(type_alias_impl_trait)]
+#![feature(generic_associated_types)]
+
 use std::{
     collections::HashMap,
     f32::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_4, PI},
@@ -30,7 +33,7 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    let mut player = Player::new((0, -1), 3);
+    let mut player = Player::new((0, -1), 3).await;
     let mut stars = Stars::default();
     let orbit_render_target = render_target(1024, 1024);
     let map = Map {
@@ -38,7 +41,7 @@ async fn main() {
         zoom: 0.1,
         small_zoom: 1.0,
     };
-    let mut orbits = orbits::Orbits::load();
+    let mut orbits = orbits::Orbits::load().await;
     orbits.insert(FRAC_PI_4, orbital::Orbit::circular(200.0));
     orbits.insert(
         0.0,

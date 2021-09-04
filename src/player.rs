@@ -34,7 +34,7 @@ enum Action {
 }
 
 impl Player {
-    pub fn new(coord: impl Into<Coordinate>, side: u8) -> Self {
+    pub async fn new(coord: impl Into<Coordinate>, side: u8) -> Self {
         let texture = Texture2D::from_file_with_format(
             include_bytes!("../assets/Crab Sprite Sheet.png"),
             Some(ImageFormat::Png),
@@ -71,12 +71,12 @@ impl Player {
         let anim = AnimatedSprite::new(32, 32, &animations, false);
 
         Self {
-            pos: Saveable::new(coord.into(), "player"),
-            side: Saveable::new(side, "player/side"),
+            pos: Saveable::new(coord.into(), "player").await,
+            side: Saveable::new(side, "player/side").await,
             texture,
             speed: 0,
             i: 0,
-            x: Saveable::default("player/side_pos"),
+            x: Saveable::default("player/side_pos").await,
             anim,
             animations,
             action: Action::Idle,

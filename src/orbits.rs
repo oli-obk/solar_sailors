@@ -16,7 +16,7 @@ struct Object {
 pub struct Orbits {
     objects: HashMap<usize, Object>,
     next_id: usize,
-    t: Saveable<f32>,
+    t: Saveable<u64>,
 }
 
 pub struct ObjectId(usize);
@@ -24,11 +24,11 @@ pub struct ObjectId(usize);
 const MOON_SIZE: f32 = 20.0;
 
 impl Orbits {
-    pub fn load() -> Self {
+    pub async fn load() -> Self {
         Self {
             objects: Default::default(),
             next_id: 0,
-            t: Saveable::default("time"),
+            t: Saveable::default("time").await,
         }
     }
     pub fn insert(&mut self, angle: f32, orbit: orbital::Orbit) -> ObjectId {
@@ -43,12 +43,12 @@ impl Orbits {
         ObjectId(id)
     }
     pub fn update(&mut self) {
-        self.t += 10.0;
+        self.t += 1;
         // only need to do something for objects under thrust
     }
     pub fn draw(&self) {
         for object in self.objects.values() {
-            let angle = object.orbit.orbit.angle_at(1.0, *self.t);
+            let angle = object.orbit.orbit.angle_at(1.0, *self.t as f32 * 10.0);
             let radius = object.orbit.orbit.r(angle);
             let system_angle = angle + object.orbit.angle;
             let (y, x) = system_angle.sin_cos();

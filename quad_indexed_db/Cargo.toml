@@ -1,0 +1,10 @@
+[package]
+name = "quad_indexed_db"
+version = "0.1.0"
+authors = ["Oliver Scherer <github@oli-obk.de>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+sapp-jsutils = { path = "../../sapp-jsutils", version = "0.1.5" }

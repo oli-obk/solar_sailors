@@ -1,6 +1,7 @@
 use std::{
     cmp::Ordering,
     fmt::{Debug, Display},
+    future::Future,
     ops::{AddAssign, Deref, DerefMut, MulAssign, RemAssign, SubAssign},
     str::FromStr,
 };
@@ -14,21 +15,14 @@ fn save(key: impl ToString, value: impl ToString) {
     storage::set(&key.to_string(), &value.to_string())
 }
 
-fn load<T: FromStr>(key: impl ToString) -> Option<T>
-where
-    T::Err: Debug,
-{
-    try_load(key).map(Result::unwrap)
-}
-
-fn try_load<T: FromStr>(key: impl ToString) -> Option<Result<T, T::Err>> {
-    storage::get(&key.to_string())
-        .map(|s| s.parse())
+fn load(key: &str) -> impl Future<Output = Option<String>> {
+    storage::get(key)
 }
 
 pub trait Save {
     fn save(&self, key: impl Display);
-    fn load(&mut self, key: impl Display);
+    type Load<'a>: Future<Output = ()>;
+    fn load<'a>(&'a mut self, key: &str) -> Self::Load<'a>;
 }
 
 pub struct Saveable<T> {
@@ -39,28 +33,28 @@ pub struct Saveable<T> {
 pub type ComplexSaveable<T> = Saveable<ComplexSave<T>>;
 
 impl<T: Save> Saveable<T> {
-    pub fn new(value: impl Into<T>, key: impl ToString) -> Self {
+    pub async fn new(value: impl Into<T>, key: impl ToString) -> Self {
         let mut this = Self {
             value: value.into(),
             key: key.to_string(),
         };
-        this.load();
+        this.load().await;
         this
     }
 
-    pub fn default(key: impl ToString) -> Self
+    pub async fn default(key: impl ToString) -> Self
     where
         T: Default,
     {
-        Self::new(T::default(), key)
+        Self::new(T::default(), key).await
     }
 
     fn save(&self) {
         self.value.save(&self.key)
     }
 
-    fn load(&mut self) {
-        self.value.load(&self.key)
+    async fn load(&mut self) {
+        self.value.load(&self.key).await
     }
 
     pub fn update(&mut self, f: impl FnOnce(&mut T)) {
@@ -125,9 +119,13 @@ where
         save(key, self)
     }
 
-    fn load(&mut self, key: impl ToString) {
-        if let Some(val) = load(key) {
-            *self = val;
+    type Load<'a> = impl Future<Output = ()>;
+    fn load<'a>(&'a mut self, key: &str) -> Self::Load<'a> {
+        let val = load(key);
+        async move {
+            if let Some(val) = val.await {
+                *self = val.parse().unwrap();
+            }
         }
     }
 }
@@ -159,8 +157,13 @@ impl Save for ComplexSave<Coordinate> {
         self.y.save(format_args!("{}/y", key));
     }
 
-    fn load(&mut self, key: impl Display) {
-        self.x.load(format_args!("{}/x", key));
-        self.y.load(format_args!("{}/y", key));
+    type Load<'a> = impl Future<Output = ()>;
+    fn load(&mut self, key: &str) -> Self::Load<'_> {
+        let x = format!("{}/x", key);
+        let y = format!("{}/y", key);
+        async move {
+            self.x.load(&x).await;
+            self.y.load(&y).await;
+        }
     }
 }

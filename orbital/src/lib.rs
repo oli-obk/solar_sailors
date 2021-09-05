@@ -1,5 +1,6 @@
 use std::f32::consts::{PI, TAU};
 
+#[derive(Debug)]
 pub struct Orbit {
     /// Semi-latus rectum. Basically a factor scaling the height of the ellipse.
     pub p: f32,
@@ -14,6 +15,45 @@ impl Orbit {
             p: radius,
             epsilon: 0.0,
         }
+    }
+
+    /// Compute orbit from position and speed. The second return value is the angle of the orbit.
+    pub fn from_pos_dir(x: f32, y: f32, dx: f32, dy: f32) -> (Self, f32) {
+        let r_squared = x * x + y * y;
+        let r = r_squared.sqrt();
+        let phi = y.atan2(x);
+        let v_squared = dx * dx + dy * dy;
+        let a = r / (2.0 - r * v_squared);
+        let xi = dy.atan2(dx);
+        let sinxiphi = (xi - phi).sin();
+        let sinxiphi2 = sinxiphi * sinxiphi;
+        // https://phys.libretexts.org/Bookshelves/Astronomy__Cosmology/Book%3A_Celestial_Mechanics_(Tatum)/09%3A_The_Two_Body_Problem_in_Two_Dimensions/9.08%3A_Orbital_Elements_and_Velocity_Vector
+        // formula 9.9.4
+        let e_squared = 1.0 - r_squared * v_squared * sinxiphi2 / a;
+        let e = e_squared.sqrt();
+        let cos_angle = (a * (1.0 - e_squared) / r - 1.0) / e;
+        let angle = cos_angle.acos();
+        let angles = [phi - angle, phi + angle];
+        let p = a * (1.0 - e_squared);
+        let orbit = Orbit { p, epsilon: e };
+        for &angle in &angles {
+            assert!(
+                (orbit.r(angle) - r).abs() < 0.0001,
+                "{} - {}",
+                orbit.r(angle),
+                r
+            );
+        }
+        let d = [
+            orbit.dx_dy(angles[0]) - (dx / dy),
+            orbit.dx_dy(angles[1]) - (dx / dy),
+        ];
+        let angle = if d[0].abs() < d[1].abs() {
+            angle
+        } else {
+            -angle
+        };
+        (orbit, angle + PI)
     }
 
     /// Radius at orbital angle `phi` in orbit coordinates, not in the coordinate system of the center of gravity.
@@ -31,9 +71,24 @@ impl Orbit {
         self.r(PI)
     }
 
-    /// Distance from center of ellipse to perihelion/aphelion
+    /// Distance from center of ellipse to perihelion/aphelion.
+    /// If negative, it's a hyperbola, and the distance is to perihelion.
     pub fn semi_major(&self) -> f32 {
         self.p / (1.0 - self.epsilon * self.epsilon)
+    }
+
+    pub fn dr_dphi(&self, phi: f32) -> f32 {
+        let (sin, cos) = phi.sin_cos();
+        let bottom = 1.0 + self.epsilon * cos;
+        self.p * self.epsilon * sin / (bottom * bottom)
+    }
+
+    pub fn dx_dy(&self, phi: f32) -> f32 {
+        let tan = phi.tan();
+        let dr_dphi = self.dr_dphi(phi);
+        let r = self.r(phi);
+        // FIXME is it tan(phi * dr_dphi) or tan(phi) * dr_dphi?
+        (tan * dr_dphi + r) / (dr_dphi - r * tan)
     }
 
     /// Distance from the center of the ellipse to the point at 90° to the semi major axis

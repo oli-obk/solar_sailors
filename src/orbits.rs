@@ -1,4 +1,7 @@
-use std::{collections::HashMap, f32::consts::TAU};
+use std::{
+    collections::HashMap,
+    f32::consts::{PI, TAU},
+};
 
 use macroquad::prelude::*;
 
@@ -50,11 +53,12 @@ impl Orbits {
         for object in self.objects.values() {
             let angle = object.orbit.orbit.angle_at(1.0, *self.t);
             let radius = object.orbit.orbit.r(angle);
+            println!("{:?}, {}", object.orbit.orbit, object.orbit.angle);
             let system_angle = angle + object.orbit.angle;
             let (y, x) = system_angle.sin_cos();
             let pos = vec2(x, y) * radius;
             let size = 10.0;
-            let y = f32::sin(std::f32::consts::PI / 3.0) * size;
+            let y = f32::sin(PI / 3.0) * size;
             let x = size / 2.0;
             let left = Vec2::new(-x, y);
             let right = Vec2::new(x, y);

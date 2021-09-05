@@ -40,6 +40,8 @@ async fn main() {
     };
     let mut orbits = orbits::Orbits::load();
     orbits.insert(FRAC_PI_4, orbital::Orbit::circular(200.0));
+    let (orbit, angle) = orbital::Orbit::from_pos_dir(100.0, 0.0, 0.0, 0.07);
+    orbits.insert(angle, orbit);
     orbits.insert(
         0.0,
         orbital::Orbit {

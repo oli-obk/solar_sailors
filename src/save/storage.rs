@@ -94,8 +94,10 @@ pub async fn transaction_loop<F: Future<Output = ()>>(mut f: impl FnMut() -> F) 
         #[cfg(not(target_arch = "wasm32"))]
         {
             let dest = path(&(odd as u8).to_string());
-            std::fs::remove_dir_all(&dest).unwrap();
-            copy_dir::copy_dir(path(&((!odd) as u8).to_string()), dest).unwrap();
+            // Also work if there wasn't a save game yet so no folders, either
+            if std::fs::remove_dir_all(&dest).is_ok() {
+                copy_dir::copy_dir(path(&((!odd) as u8).to_string()), dest).unwrap();
+            }
         }
         // Let all the regular storage ops know what prefix to use.
         ODD.store(odd, Ordering::Relaxed);

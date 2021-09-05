@@ -7,13 +7,14 @@ use macroquad::prelude::{
 };
 
 use crate::{
+    datastructures::{Sensor, SetGet},
     save::{ComplexSaveable, Saveable},
     ship::{Attachement, Segment, ATTACHEMENT_ANGLES, ATTACHEMENT_OFFSETS, SIZE, SPACING, SQRT3},
 };
 
 pub struct Player {
-    pos: ComplexSaveable<Coordinate>,
-    side: Saveable<u8>,
+    pos: Sensor<ComplexSaveable<Coordinate>>,
+    side: Sensor<Saveable<u8>>,
     /// Used to reduce the speed of animations.
     speed: u32,
     i: u32,
@@ -71,8 +72,8 @@ impl Player {
         let anim = AnimatedSprite::new(32, 32, &animations, false);
 
         Self {
-            pos: Saveable::new(coord.into(), "player"),
-            side: Saveable::new(side, "player/side"),
+            pos: Sensor::raw(Saveable::new(coord.into(), "player")),
+            side: Sensor::raw(Saveable::new(side, "player/side")),
             texture,
             speed: 0,
             i: 0,
@@ -87,7 +88,9 @@ impl Player {
         &self,
         grid: &'a HashMap<hex2d::Coordinate, Segment>,
     ) -> Option<&'a (dyn Attachement + 'static)> {
-        grid.get(&self.pos).expect("crab not on grid").attachements[*self.side as usize]
+        grid.get(&self.pos.get())
+            .expect("crab not on grid")
+            .attachements[self.side.get() as usize]
             .as_ref()
             .map(|a| &**a)
     }
@@ -96,9 +99,9 @@ impl Player {
         &self,
         grid: &'a mut HashMap<hex2d::Coordinate, Segment>,
     ) -> Option<&'a mut (dyn Attachement + 'static)> {
-        grid.get_mut(&self.pos)
+        grid.get_mut(&self.pos.get())
             .expect("crab not on grid")
-            .attachements[*self.side as usize]
+            .attachements[self.side.get() as usize]
             .as_mut()
             .map(|a| &mut **a)
     }
@@ -182,10 +185,10 @@ impl Player {
                     } else {
                         self.x -= 2;
                     }
-                    let coord = self.pos.neighbors()[*self.side as usize];
+                    let coord = self.pos.get().neighbors()[self.side.get() as usize];
                     // Walk onto next hex if there is one
                     if grid.contains_key(&coord) {
-                        self.pos.set(coord);
+                        self.pos.set(coord.into());
                         self.side += 3;
                         if self.x > 0 {
                             self.side -= 1;
@@ -227,7 +230,7 @@ impl Player {
     }
 
     pub(crate) fn draw(&self) {
-        let (x, y) = self.pos.to_pixel(SPACING);
+        let (x, y) = self.pos.get().to_pixel(SPACING);
         let center = vec2(x, y);
 
         let AnimationFrame {
@@ -237,7 +240,7 @@ impl Player {
 
         dest_size *= SCALE as f32;
 
-        let base = ATTACHEMENT_OFFSETS[*self.side as usize];
+        let base = ATTACHEMENT_OFFSETS[self.side.get() as usize];
         let x = self.x() - dest_size.x / 2.0;
         let offset = x * base.perp().normalize();
         const ANIM_OFFSET: i32 = 32 * SCALE;
@@ -261,7 +264,7 @@ impl Player {
             DrawTextureParams {
                 dest_size: Some(dest_size),
                 source: Some(source_rect),
-                rotation: ATTACHEMENT_ANGLES[*self.side as usize],
+                rotation: ATTACHEMENT_ANGLES[self.side.get() as usize],
                 pivot: Some(pos),
                 flip_x,
                 ..Default::default()

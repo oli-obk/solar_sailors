@@ -10,6 +10,8 @@ use hex2d::Coordinate;
 mod storage;
 pub use storage::transaction_loop;
 
+use crate::datastructures::SetGet;
+
 fn save(key: impl ToString, value: impl ToString) {
     storage::set(&key.to_string(), &value.to_string())
 }
@@ -22,8 +24,7 @@ where
 }
 
 fn try_load<T: FromStr>(key: impl ToString) -> Option<Result<T, T::Err>> {
-    storage::get(&key.to_string())
-        .map(|s| s.parse())
+    storage::get(&key.to_string()).map(|s| s.parse())
 }
 
 pub trait Save {
@@ -66,9 +67,6 @@ impl<T: Save> Saveable<T> {
     pub fn update(&mut self, f: impl FnOnce(&mut T)) {
         f(&mut self.value);
         self.save()
-    }
-    pub fn set(&mut self, t: impl Into<T>) {
-        self.update(|v| *v = t.into());
     }
 }
 
@@ -116,7 +114,7 @@ impl<T: PartialOrd> PartialOrd<T> for Saveable<T> {
     }
 }
 
-impl<T: FromStr> Save for T
+impl<T: FromStr + Copy> Save for T
 where
     for<'a> &'a T: ToString,
     T::Err: Debug,
@@ -132,6 +130,7 @@ where
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct ComplexSave<T>(T);
 
 impl<T> From<T> for ComplexSave<T> {
@@ -162,5 +161,17 @@ impl Save for ComplexSave<Coordinate> {
     fn load(&mut self, key: impl Display) {
         self.x.load(format_args!("{}/x", key));
         self.y.load(format_args!("{}/y", key));
+    }
+}
+
+impl<T: Save + Copy> SetGet for Saveable<T> {
+    type Val = T;
+
+    fn get(&self) -> Self::Val {
+        self.value
+    }
+
+    fn set(&mut self, val: Self::Val) {
+        self.update(|v| *v = val);
     }
 }

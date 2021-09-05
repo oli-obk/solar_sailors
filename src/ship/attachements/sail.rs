@@ -4,7 +4,7 @@ use macroquad::prelude::*;
 
 use crate::{
     controlled::ControlledRange,
-    datastructures::{Reader, Sensor},
+    datastructures::{Reader, Sensor, SetGet},
     ship::SIZE,
 };
 
@@ -97,9 +97,8 @@ impl crate::ship::Attachement for Sail {
             self.current_angular_velocity *= 0.95;
         }
 
-        let a = self
-            .current_angle
-            .update(|a| a + self.current_angular_velocity);
+        let cav = self.current_angular_velocity;
+        let a = self.current_angle.modify(|a| a + cav);
 
         if a.abs() > std::f32::consts::FRAC_PI_6 {
             // Sail uncontrollable

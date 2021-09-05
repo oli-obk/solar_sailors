@@ -24,10 +24,17 @@ impl ControlledRange {
     }
 
     pub fn control(&mut self, dir: bool) {
+        let Self {
+            ref mut value,
+            min,
+            max,
+            speed,
+            ..
+        } = *self;
         if !dir {
-            self.value.update(|v| self.min.max(v - self.speed));
+            value.modify(|v| min.max(v - speed));
         } else {
-            self.value.update(|v| self.max.min(v + self.speed));
+            value.modify(|v| max.min(v + speed));
         }
     }
 }

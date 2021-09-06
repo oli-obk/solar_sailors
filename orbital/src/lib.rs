@@ -23,7 +23,8 @@ impl Orbit {
         let r = r_squared.sqrt();
         let phi = y.atan2(x);
         let v_squared = dx * dx + dy * dy;
-        let a = r / (2.0 - r * v_squared);
+        let a_over_r = 1.0 / (2.0 - r * v_squared);
+        let a = r * a_over_r;
         let xi = dy.atan2(dx);
         let sinxiphi = (xi - phi).sin();
         let sinxiphi2 = sinxiphi * sinxiphi;
@@ -31,7 +32,7 @@ impl Orbit {
         // formula 9.9.4
         let e_squared = 1.0 - r_squared * v_squared * sinxiphi2 / a;
         let e = e_squared.sqrt();
-        let cos_angle = (a * (1.0 - e_squared) / r - 1.0) / e;
+        let cos_angle = (a_over_r * (1.0 - e_squared) - 1.0) / e;
         let angle = cos_angle.acos();
         let angles = [phi - angle, phi + angle];
         let p = a * (1.0 - e_squared);

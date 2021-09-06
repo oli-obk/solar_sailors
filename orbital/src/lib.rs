@@ -5,7 +5,10 @@ pub struct Orbit {
     /// Semi-latus rectum. Basically a factor scaling the height of the ellipse.
     pub p: f64,
     /// Eccentricity of the orbit. Basically means how wide it is.
-    /// Must be in `0.0 ..= 1.0`
+    /// In [0.0, 1.0) means it's an ellipse.
+    /// At exactly 1.0, it's parabolic.
+    /// At above 1.0 it's hyperbolic.
+    // https://phys.libretexts.org/Bookshelves/Astronomy__Cosmology/Book%3A_Celestial_Mechanics_(Tatum)/09%3A_The_Two_Body_Problem_in_Two_Dimensions/9.07%3A_Position_in_a_Hyperbolic_Orbit
     pub epsilon: f64,
 }
 
@@ -18,7 +21,8 @@ impl Orbit {
     }
 
     /// Compute orbit from position and speed. The second return value is the angle of the orbit.
-    pub fn from_pos_dir(x: f64, y: f64, dx: f64, dy: f64) -> (Self, f64) {
+    /// The third return value is the starting time of the object in the orbit.
+    pub fn from_pos_dir(x: f64, y: f64, dx: f64, dy: f64) -> (Self, f64, f64) {
         let x = x as f64;
         let y = y as f64;
         let dx = dx as f64;
@@ -42,7 +46,12 @@ impl Orbit {
         // Truncate precision to f32 to make sure we never get above 1.0 even with some float math issues
         let angle = ((cos_angle as f32) as f64).acos();
         let angles = [phi - angle, phi + angle];
-        let p = a * (1.0 - e_squared);
+        let (p, r) = if e < 1.0 {
+            (a * (1.0 - e_squared), r)
+        } else {
+            // hyperbolic orbit
+            (a * (e_squared - 1.0), -r)
+        };
         let orbit = Orbit { p, epsilon: e };
         for &angle in &angles {
             assert!(
@@ -59,12 +68,23 @@ impl Orbit {
         let angle = if d[0].abs() < d[1].abs() {
             angle
         } else {
-            -angle
+            TAU - angle
         };
-        (orbit, angle)
+        // 9.8.1
+        let cos_big_e = (e + cos_angle) / (rvs / r);
+        // Truncate precision to f32 to make sure we never get above 1.0 even with some float math issues
+        let big_e = ((cos_big_e as f32) as f64).acos();
+        let big_e = if angle < PI { big_e } else { TAU - big_e };
+        let m = big_e - e * big_e.sin();
+        let mean_motion = orbit.mean_motion(1.0);
+        let t = m / mean_motion;
+
+        let angle = if e < 1.0 { angle } else { angle + PI };
+        (orbit, angle, t)
     }
 
     /// Radius at orbital angle `phi` in orbit coordinates, not in the coordinate system of the center of gravity.
+    /// You need to adjust for the angle of the orbit yourself.
     pub fn r(&self, phi: f64) -> f64 {
         self.p / (1.0 + self.epsilon * phi.cos())
     }
@@ -80,9 +100,13 @@ impl Orbit {
     }
 
     /// Distance from center of ellipse to perihelion/aphelion.
-    /// If negative, it's a hyperbola, and the distance is to perihelion.
+    /// If it's a hyperbola, the distance is to perihelion.
     pub fn semi_major(&self) -> f64 {
+        if self.epsilon < 1.0 {
         self.p / (1.0 - self.epsilon * self.epsilon)
+        } else {
+            -self.p / (self.epsilon * self.epsilon - 1.0)
+        }
     }
 
     pub fn dr_dphi(&self, phi: f64) -> f64 {

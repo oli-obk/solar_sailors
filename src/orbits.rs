@@ -5,7 +5,11 @@ use macroquad::prelude::*;
 use crate::save::Saveable;
 
 struct Orbit {
+    /// Angle of apehelion.
     angle: f64,
+    /// Starting point of object in the orbit.
+    t: f64,
+    /// raw orbit information.
     orbit: orbital::Orbit,
 }
 
@@ -16,7 +20,7 @@ struct Object {
 pub struct Orbits {
     objects: HashMap<usize, Object>,
     next_id: usize,
-    t: Saveable<f64>,
+    pub t: Saveable<f64>,
 }
 
 pub struct ObjectId(usize);
@@ -31,13 +35,13 @@ impl Orbits {
             t: Saveable::default("time"),
         }
     }
-    pub fn insert(&mut self, angle: f64, orbit: orbital::Orbit) -> ObjectId {
+    pub fn insert(&mut self, angle: f64, orbit: orbital::Orbit, t: f64) -> ObjectId {
         let id = self.next_id;
         self.next_id += 1;
         self.objects.insert(
             id,
             Object {
-                orbit: Orbit { angle, orbit },
+                orbit: Orbit { angle, orbit, t },
             },
         );
         ObjectId(id)
@@ -48,7 +52,7 @@ impl Orbits {
     }
     pub fn draw(&self) {
         for object in self.objects.values() {
-            let angle = object.orbit.orbit.angle_at(1.0, *self.t);
+            let angle = object.orbit.orbit.angle_at(1.0, *self.t + object.orbit.t);
             let radius = object.orbit.orbit.r(angle);
             let system_angle = angle + object.orbit.angle;
             let (y, x) = system_angle.sin_cos();

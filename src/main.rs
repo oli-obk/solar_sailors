@@ -1,13 +1,18 @@
 use std::{
     collections::HashMap,
-    f32::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_4, PI},
+    f32::consts::{FRAC_PI_2, FRAC_PI_3, PI},
+    sync::{Arc, Mutex},
 };
 
-use macroquad::prelude::*;
+use macroquad::prelude::{
+    coroutines::{start_coroutine, wait_seconds},
+    *,
+};
 use ship::{Gauge, Segment, SpaceShip};
 use stars::Stars;
 
 use crate::{
+    datastructures::SetGet,
     player::Player,
     ship::{Attachement, Map, Sail},
 };
@@ -35,20 +40,15 @@ async fn main() {
     let orbit_render_target = render_target(1024, 1024);
     let map = Map {
         texture: orbit_render_target.texture,
-        zoom: 0.1,
+        zoom: 0.5,
         small_zoom: 1.0,
     };
     let mut orbits = orbits::Orbits::load();
-    orbits.insert(FRAC_PI_4, orbital::Orbit::circular(200.0));
-    let (orbit, angle) = orbital::Orbit::from_pos_dir(100.0, 0.0, 0.0, 0.07);
-    orbits.insert(angle, orbit);
-    orbits.insert(
-        0.0,
-        orbital::Orbit {
-            p: 50.0,
-            epsilon: 0.8,
-        },
-    );
+    orbits.insert(0.0, orbital::Orbit::circular(200.0), 0.0);
+    for i in 0..10 {
+        let (orbit, angle, t) = orbital::Orbit::from_pos_dir(100.0, 0.0, 0.0, 0.02 + 0.02 * i as f64);
+        orbits.insert(angle, orbit, t);
+    }
 
     let sail_width = 100.0;
     let (sail, rope_positions, force, current_angle, left_rope, right_rope) =
@@ -88,7 +88,30 @@ async fn main() {
     );
 
     let mut window = GameWindow::Ship;
+    let mut delete_save = start_coroutine(async {});
+    let do_delete = Arc::new(Mutex::new(false));
     save::transaction_loop(|| {
+        if delete_save.is_done() {
+            if is_key_down(KeyCode::Delete) {
+                let do_delete = do_delete.clone();
+                delete_save = start_coroutine(async move {
+                    let timer = start_coroutine(async {
+                        wait_seconds(2.0).await;
+                    });
+                    while is_key_down(KeyCode::Delete) {
+                        if timer.is_done() {
+                            *do_delete.lock().unwrap() = true;
+                            return;
+                        }
+                        next_frame().await
+                    }
+                })
+            }
+            if *do_delete.lock().unwrap() {
+                orbits.t.set(0.0);
+                *do_delete.lock().unwrap() = false;
+            }
+        }
         // Logic
         stars.update();
         ship.update();

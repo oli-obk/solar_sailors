@@ -39,7 +39,8 @@ impl Orbit {
         let e_squared = 1.0 - one_neg_e_squared;
         let e = e_squared.sqrt();
         let cos_angle = (rvs / r - 1.0) / e;
-        let angle = cos_angle.acos();
+        // Truncate precision to f32 to make sure we never get above 1.0 even with some float math issues
+        let angle = ((cos_angle as f32) as f64).acos();
         let angles = [phi - angle, phi + angle];
         let p = a * (1.0 - e_squared);
         let orbit = Orbit { p, epsilon: e };
@@ -60,7 +61,7 @@ impl Orbit {
         } else {
             -angle
         };
-        (orbit, angle + PI)
+        (orbit, angle)
     }
 
     /// Radius at orbital angle `phi` in orbit coordinates, not in the coordinate system of the center of gravity.

@@ -50,7 +50,6 @@ impl Orbits {
         for object in self.objects.values() {
             let angle = object.orbit.orbit.angle_at(1.0, *self.t);
             let radius = object.orbit.orbit.r(angle);
-            println!("{:?}, {}", object.orbit.orbit, object.orbit.angle);
             let system_angle = angle + object.orbit.angle;
             let (y, x) = system_angle.sin_cos();
             let x = x as f32;
@@ -64,7 +63,7 @@ impl Orbits {
             draw_triangle(pos, pos + left, pos + right, GREEN);
 
             let segments = 100;
-            let (y, x) = (-object.orbit.angle).sin_cos();
+            let (y, x) = (0.0_f32).sin_cos();
             let mut x = x as f32;
             let mut y = y as f32;
             let r = object.orbit.orbit.r(-object.orbit.angle) as f32;
@@ -72,11 +71,11 @@ impl Orbits {
             x *= r;
             let step_size = TAU / segments as f64;
             for i in 0..segments {
-                let angle = step_size * (i + 1) as f64 - object.orbit.angle;
+                let angle = step_size * (i + 1) as f64;
                 let (new_y, new_x) = angle.sin_cos();
                 let mut new_x = new_x as f32;
                 let mut new_y = new_y as f32;
-                let r = object.orbit.orbit.r(angle) as f32;
+                let r = object.orbit.orbit.r(angle - object.orbit.angle) as f32;
                 new_y *= r;
                 new_x *= r;
                 draw_line(x, y, new_x, new_y, 0.5, GRAY);

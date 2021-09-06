@@ -30,9 +30,10 @@ impl Orbit {
         let sinxiphi2 = sinxiphi * sinxiphi;
         // https://phys.libretexts.org/Bookshelves/Astronomy__Cosmology/Book%3A_Celestial_Mechanics_(Tatum)/09%3A_The_Two_Body_Problem_in_Two_Dimensions/9.08%3A_Orbital_Elements_and_Velocity_Vector
         // formula 9.9.4
-        let e_squared = 1.0 - r_squared * v_squared * sinxiphi2 / a;
+        let one_neg_e_squared = r_squared * v_squared * sinxiphi2 / a;
+        let e_squared = 1.0 - one_neg_e_squared;
         let e = e_squared.sqrt();
-        let cos_angle = (a_over_r * (1.0 - e_squared) - 1.0) / e;
+        let cos_angle = (a_over_r * one_neg_e_squared - 1.0) / e;
         let angle = cos_angle.acos();
         let angles = [phi - angle, phi + angle];
         let p = a * (1.0 - e_squared);

@@ -46,11 +46,11 @@ impl Orbit {
         // Truncate precision to f32 to make sure we never get above 1.0 even with some float math issues
         let angle = ((cos_angle as f32) as f64).acos();
         let angles = [phi - angle, phi + angle];
-        let (p, r) = if e < 1.0 {
-            (a * (1.0 - e_squared), r)
+        let p = if e < 1.0 {
+            a * (1.0 - e_squared)
         } else {
             // hyperbolic orbit
-            (a * (e_squared - 1.0), -r)
+            -a * (e_squared - 1.0)
         };
         let orbit = Orbit { p, epsilon: e };
         for &angle in &angles {
@@ -61,6 +61,10 @@ impl Orbit {
                 r
             );
         }
+        let (t, angle) = if e < 0.0001 {
+            // Circle
+            (0.0, phi)
+        } else {
         // xi is angle of direction
         // HACK: we treat the tangent as 90° to the orbital angular position.
         let d = [FRAC_PI_2 - xi, -FRAC_PI_2 - xi];
@@ -69,12 +73,8 @@ impl Orbit {
         let angle = if d[0] < d[1] {
             angle - d[0]
         } else {
-            TAU - angle + d[1]
+                angle + d[1]
         };
-        let t = if e < 0.0001 {
-            // Circle
-            0.0
-        } else {
             // 9.8.1
             let cos_big_e = (e + cos_angle) / (rvs / r);
             // Truncate precision to f32 to make sure we never get above 1.0 even with some float math issues
@@ -82,7 +82,7 @@ impl Orbit {
             let big_e = if angle < PI { big_e } else { TAU - big_e };
             let m = big_e - e * big_e.sin();
             let mean_motion = orbit.mean_motion(1.0);
-            m / mean_motion
+            (m / mean_motion, angle)
         };
 
         (orbit, angle, t)

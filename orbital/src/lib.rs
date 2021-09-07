@@ -1,4 +1,4 @@
-use std::f64::consts::{PI, TAU};
+use std::f64::consts::{FRAC_PI_2, PI, TAU};
 
 #[derive(Debug)]
 pub struct Orbit {
@@ -61,25 +61,30 @@ impl Orbit {
                 r
             );
         }
-        let d = [
-            orbit.dx_dy(angles[0]) - (dx / dy),
-            orbit.dx_dy(angles[1]) - (dx / dy),
-        ];
-        let angle = if d[0].abs() < d[1].abs() {
-            angle
+        // xi is angle of direction
+        // HACK: we treat the tangent as 90° to the orbital angular position.
+        let d = [FRAC_PI_2 - xi, -FRAC_PI_2 - xi];
+        let d = |i, j| f64::abs((angles[i] + d[j] + TAU) % TAU);
+        let d = [d(0, 0).min(d(0, 1)), d(1, 0).min(d(1, 1))];
+        let angle = if d[0] < d[1] {
+            angle - d[0]
         } else {
-            TAU - angle
+            TAU - angle + d[1]
         };
-        // 9.8.1
-        let cos_big_e = (e + cos_angle) / (rvs / r);
-        // Truncate precision to f32 to make sure we never get above 1.0 even with some float math issues
-        let big_e = ((cos_big_e as f32) as f64).acos();
-        let big_e = if angle < PI { big_e } else { TAU - big_e };
-        let m = big_e - e * big_e.sin();
-        let mean_motion = orbit.mean_motion(1.0);
-        let t = m / mean_motion;
+        let t = if e < 0.0001 {
+            // Circle
+            0.0
+        } else {
+            // 9.8.1
+            let cos_big_e = (e + cos_angle) / (rvs / r);
+            // Truncate precision to f32 to make sure we never get above 1.0 even with some float math issues
+            let big_e = ((cos_big_e as f32) as f64).acos();
+            let big_e = if angle < PI { big_e } else { TAU - big_e };
+            let m = big_e - e * big_e.sin();
+            let mean_motion = orbit.mean_motion(1.0);
+            m / mean_motion
+        };
 
-        let angle = if e < 1.0 { angle } else { angle + PI };
         (orbit, angle, t)
     }
 
@@ -102,25 +107,17 @@ impl Orbit {
     /// Distance from center of ellipse to perihelion/aphelion.
     /// If it's a hyperbola, the distance is to perihelion.
     pub fn semi_major(&self) -> f64 {
+        self.p / self.eps_squared()
+    }
+
+    fn eps_squared(&self) -> f64 {
         if self.epsilon < 1.0 {
-        self.p / (1.0 - self.epsilon * self.epsilon)
+            // Ellipse
+            1.0 - self.epsilon * self.epsilon
         } else {
-            -self.p / (self.epsilon * self.epsilon - 1.0)
+            // Hyperbola
+            self.epsilon * self.epsilon - 1.0
         }
-    }
-
-    pub fn dr_dphi(&self, phi: f64) -> f64 {
-        let (sin, cos) = phi.sin_cos();
-        let bottom = 1.0 + self.epsilon * cos;
-        self.p * self.epsilon * sin / (bottom * bottom)
-    }
-
-    pub fn dx_dy(&self, phi: f64) -> f64 {
-        let tan = phi.tan();
-        let dr_dphi = self.dr_dphi(phi);
-        let r = self.r(phi);
-        // FIXME is it tan(phi * dr_dphi) or tan(phi) * dr_dphi?
-        (tan * dr_dphi + r) / (dr_dphi - r * tan)
     }
 
     /// Distance from the center of the ellipse to the point at 90° to the semi major axis
@@ -165,7 +162,7 @@ impl Orbit {
     pub fn angle_at(&self, central_mass: f64, time: f64) -> f64 {
         let e = self.eccentric_anomaly(central_mass, time);
         let x = e.cos() - self.epsilon;
-        let y = e.sin() * (1.0 - self.epsilon * self.epsilon).sqrt();
+        let y = e.sin() * self.eps_squared().sqrt();
         y.atan2(x)
     }
 }

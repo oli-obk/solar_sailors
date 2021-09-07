@@ -74,6 +74,11 @@ impl Orbits {
             y *= r;
             x *= r;
             let step_size = TAU / segments as f64;
+            let color = if object.orbit.orbit.epsilon < 1.0 {
+                GRAY
+            } else {
+                RED
+            };
             for i in 0..segments {
                 let angle = step_size * (i + 1) as f64;
                 let (new_y, new_x) = angle.sin_cos();
@@ -82,7 +87,7 @@ impl Orbits {
                 let r = object.orbit.orbit.r(angle - object.orbit.angle) as f32;
                 new_y *= r;
                 new_x *= r;
-                draw_line(x, y, new_x, new_y, 0.5, GRAY);
+                draw_line(x, y, new_x, new_y, 0.5, color);
                 x = new_x;
                 y = new_y;
             }

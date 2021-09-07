@@ -129,16 +129,15 @@ impl Orbit {
         PI * self.semi_major() * self.semi_minor()
     }
 
-    pub fn mean_motion(&self, central_mass: f64) -> f64 {
+    pub fn mean_motion(&self) -> f64 {
         let semi_major = self.semi_major();
-        let specific_orbital_energy = -central_mass / (2.0 * semi_major);
-        (-2.0 * specific_orbital_energy).sqrt() / semi_major
+        (1.0 / semi_major).sqrt() / semi_major
     }
 
     /// This cannot be solved numerically, we loop until the precision is
     /// in the 1e-6 range. Formula from https://space.stackexchange.com/questions/8911/determining-orbital-position-at-a-future-point-in-time
-    pub fn eccentric_anomaly(&self, central_mass: f64, time: f64) -> f64 {
-        let mean_motion = self.mean_motion(central_mass);
+    pub fn eccentric_anomaly(&self, time: f64) -> f64 {
+        let mean_motion = self.mean_motion();
         let time_in_current_orbit = time % (TAU / mean_motion);
         let mean_anomaly = mean_motion * time_in_current_orbit;
         let mut e = mean_anomaly;
@@ -159,8 +158,8 @@ impl Orbit {
     }
 
     /// The angle of the object after `time` seconds, when starting at angle `0`
-    pub fn angle_at(&self, central_mass: f64, time: f64) -> f64 {
-        let e = self.eccentric_anomaly(central_mass, time);
+    pub fn angle_at(&self, time: f64) -> f64 {
+        let e = self.eccentric_anomaly(time);
         let x = e.cos() - self.epsilon;
         let y = e.sin() * self.eps_squared().sqrt();
         y.atan2(x)

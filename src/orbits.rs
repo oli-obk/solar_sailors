@@ -52,7 +52,7 @@ impl Orbits {
     }
     pub fn draw(&self) {
         for object in self.objects.values() {
-            let angle = object.orbit.orbit.angle_at(1.0, *self.t + object.orbit.t);
+            let angle = object.orbit.orbit.angle_at(*self.t + object.orbit.t);
             let radius = object.orbit.orbit.r(angle);
             let system_angle = angle + object.orbit.angle;
             let (y, x) = system_angle.sin_cos();

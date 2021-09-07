@@ -108,7 +108,7 @@ async fn main() {
                 })
             }
             if *do_delete.lock().unwrap() {
-                orbits.t.set(0.0);
+                orbits.t.set(-1000.0);
                 *do_delete.lock().unwrap() = false;
             }
         }

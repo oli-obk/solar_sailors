@@ -65,23 +65,23 @@ impl Orbit {
             // Circle
             (0.0, phi)
         } else {
-        // xi is angle of direction
-        // HACK: we treat the tangent as 90° to the orbital angular position.
-        let d = [FRAC_PI_2 - xi, -FRAC_PI_2 - xi];
-        let d = |i, j| f64::abs((angles[i] + d[j] + TAU) % TAU);
-        let d = [d(0, 0).min(d(0, 1)), d(1, 0).min(d(1, 1))];
-        let angle = if d[0] < d[1] {
-            angle - d[0]
-        } else {
+            // xi is angle of direction
+            // HACK: we treat the tangent as 90° to the orbital angular position.
+            let d = [FRAC_PI_2 - xi, -FRAC_PI_2 - xi];
+            let d = |i, j| f64::abs((angles[i] + d[j] + TAU) % TAU);
+            let d = [d(0, 0).min(d(0, 1)), d(1, 0).min(d(1, 1))];
+            let angle = if d[0] < d[1] {
+                angle - d[0]
+            } else {
                 angle + d[1]
-        };
+            };
             // 9.8.1
             let cos_big_e = (e + cos_angle) / (rvs / r);
             // Truncate precision to f32 to make sure we never get above 1.0 even with some float math issues
             let big_e = ((cos_big_e as f32) as f64).acos();
             let big_e = if angle < PI { big_e } else { TAU - big_e };
             let m = big_e - e * big_e.sin();
-            let mean_motion = orbit.mean_motion(1.0);
+            let mean_motion = orbit.mean_motion();
             (m / mean_motion, angle)
         };
 
@@ -138,18 +138,34 @@ impl Orbit {
     /// in the 1e-6 range. Formula from https://space.stackexchange.com/questions/8911/determining-orbital-position-at-a-future-point-in-time
     pub fn eccentric_anomaly(&self, time: f64) -> f64 {
         let mean_motion = self.mean_motion();
-        let time_in_current_orbit = time % (TAU / mean_motion);
+        let time_in_current_orbit = if self.epsilon < 1.0 {
+            // Optimize repeating orbits by only computing the
+            // position from the last apehelion crossing.
+            time % (TAU / mean_motion)
+        } else {
+            time
+        };
         let mean_anomaly = mean_motion * time_in_current_orbit;
         let mut e = mean_anomaly;
         let mut i = 0;
         loop {
-            let delta =
-                (e - self.epsilon * e.sin() - mean_anomaly) / (1.0 - self.epsilon * e.cos());
+            let old = e;
+            if self.epsilon < 1.0 {
+                // 9.6.8
+                // E = (M - e(E*cos(E) - sin(E)))/(1 - e * cos(E))
+                let (sin, cos) = e.sin_cos();
+                e = (mean_anomaly - self.epsilon * (e * cos - sin)) / (1.0 - self.epsilon * cos);
+            } else {
+                // 9.8.14
+                let cosh = e.cosh();
+                let sinh = e.sinh();
+                // E = (M + e(E*cosh(E) - sinh(E)))/(e * cosh(E) - 1)
+                e = (mean_anomaly + self.epsilon * (e * cosh - sinh)) / (self.epsilon * cosh - 1.0);
+            };
+            let delta = e - old;
             if i >= 30 {
                 panic!("could not converge: {}, {}", e, delta)
             }
-            // HACK: half the rate of convergence means we actually converge for large epsilon
-            e -= delta * 0.5;
             if delta.abs() < 1e-6 {
                 return e;
             }
@@ -160,8 +176,16 @@ impl Orbit {
     /// The angle of the object after `time` seconds, when starting at angle `0`
     pub fn angle_at(&self, time: f64) -> f64 {
         let e = self.eccentric_anomaly(time);
-        let x = e.cos() - self.epsilon;
-        let y = e.sin() * self.eps_squared().sqrt();
-        y.atan2(x)
+        if self.epsilon < 1.0 {
+            let x = e.cos() - self.epsilon;
+            let y = e.sin() * self.eps_squared().sqrt();
+            y.atan2(x)
+        } else {
+            // 9.8.6
+            // cos(v) = (e - cosh(E))/(e * cosh(E) - 1)
+            let cosh = e.cosh();
+            let cosv = (self.epsilon - cosh) / (self.epsilon * cosh - 1.0);
+            cosv.acos()
+        }
     }
 }

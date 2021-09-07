@@ -67,20 +67,29 @@ impl Orbits {
             draw_triangle(pos, pos + left, pos + right, GREEN);
 
             let segments = 100;
-            let (y, x) = (0.0_f32).sin_cos();
+            let (start, range) = if object.orbit.orbit.epsilon < 1.0 {
+                (0.0, TAU)
+            } else {
+                // 1/e = cos(angle)
+                let angle = (-1.0 / object.orbit.orbit.epsilon).acos();
+                let range = angle * 2.0;
+                // Subtract one degree so we don't render over infinity.
+                (-angle + TAU / 360.0, range - TAU / 180.0)
+            };
+            let (y, x) = start.sin_cos();
             let mut x = x as f32;
             let mut y = y as f32;
-            let r = object.orbit.orbit.r(-object.orbit.angle) as f32;
+            let step_size = range / segments as f64;
+            let r = object.orbit.orbit.r(object.orbit.angle + start) as f32;
             y *= r;
             x *= r;
-            let step_size = TAU / segments as f64;
             let color = if object.orbit.orbit.epsilon < 1.0 {
                 GRAY
             } else {
                 RED
             };
             for i in 0..segments {
-                let angle = step_size * (i + 1) as f64;
+                let angle = step_size * (i + 1) as f64 + start;
                 let (new_y, new_x) = angle.sin_cos();
                 let mut new_x = new_x as f32;
                 let mut new_y = new_y as f32;

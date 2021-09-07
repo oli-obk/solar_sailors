@@ -185,7 +185,7 @@ impl Orbit {
             // cos(v) = (e - cosh(E))/(e * cosh(E) - 1)
             let cosh = e.cosh();
             let cosv = (self.epsilon - cosh) / (self.epsilon * cosh - 1.0);
-            cosv.acos()
+            cosv.acos() * time.signum()
         }
     }
 }

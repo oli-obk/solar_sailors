@@ -126,7 +126,7 @@ async fn main() {
         }
 
         let mut cam = Camera2D::default();
-        cam.zoom /= 200.0;
+        cam.zoom /= 300.0;
         cam.render_target = Some(orbit_render_target);
         set_camera(&cam);
         clear_background(Color::default());

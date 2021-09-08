@@ -122,6 +122,10 @@ impl Orbit {
 
     /// Distance from the center of the ellipse to the point at 90° to the semi major axis
     pub fn semi_minor(&self) -> f64 {
+        assert!(
+            self.epsilon < 1.0,
+            "cannot compute semi minor axis for non-elliptical orbits"
+        );
         self.p / (1.0 - self.epsilon * self.epsilon).sqrt()
     }
 

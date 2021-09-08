@@ -55,13 +55,13 @@ impl Orbit {
         let orbit = Orbit { p, epsilon: e };
         for &angle in &angles {
             assert!(
-                (orbit.r(angle) - r).abs() < 0.0001,
+                (orbit.r(angle) - r).abs() < 1e-6,
                 "{} - {}",
                 orbit.r(angle),
                 r
             );
         }
-        let (t, angle) = if e < 0.0001 {
+        let (t, angle) = if e < 1e-6 {
             // Circle
             (0.0, phi)
         } else {
@@ -111,6 +111,10 @@ impl Orbit {
     }
 
     fn eps_squared(&self) -> f64 {
+        assert!(
+            (self.epsilon - 1.0).abs() < 1e-6,
+            "can not compute semi major axis for parabolic orbits"
+        );
         if self.epsilon < 1.0 {
             // Ellipse
             1.0 - self.epsilon * self.epsilon

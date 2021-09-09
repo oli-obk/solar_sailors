@@ -1,4 +1,5 @@
 use std::f64::consts::{FRAC_PI_2, PI, TAU};
+use tracing::*;
 
 #[derive(Debug)]
 pub struct Orbit {
@@ -45,6 +46,7 @@ impl Orbit {
 
     /// Compute orbit from position and speed. The second return value is the angle of the orbit.
     /// The third return value is the starting time of the object in the orbit.
+    #[instrument(level = "debug")]
     pub fn from_pos_dir(x: f64, y: f64, dx: f64, dy: f64) -> (Self, f64, f64) {
         let x = x as f64;
         let y = y as f64;
@@ -66,9 +68,11 @@ impl Orbit {
         let e_squared = 1.0 - one_neg_e_squared;
         let e = e_squared.sqrt();
         let cos_angle = (rvs / r - 1.0) / e;
+        trace!(?cos_angle);
         // Truncate precision to f32 to make sure we never get above 1.0 even with some float math issues
         let angle = ((cos_angle as f32) as f64).acos();
         let angles = [phi - angle, phi + angle];
+        trace!(?angles);
         let kind = OrbitKind::from_eccentricity(e);
         let p = match kind {
             OrbitKind::Circle => a,
@@ -129,7 +133,7 @@ impl Orbit {
     }
 
     /// Distance from center of ellipse to perihelion/aphelion.
-    /// If it's a hyperbola or parabola, the distance is to perihelion.
+    /// If it's a hyperbola or parabola, the distance is from center of gravity to perihelion.
     pub fn semi_major(&self) -> f64 {
         self.p / self.eps_squared()
     }
@@ -164,6 +168,7 @@ impl Orbit {
 
     /// This cannot be solved numerically, we loop until the precision is
     /// in the 1e-6 range. Formula from https://space.stackexchange.com/questions/8911/determining-orbital-position-at-a-future-point-in-time
+    #[instrument(level = "trace")]
     pub fn eccentric_anomaly(&self, time: f64) -> f64 {
         let mean_motion = self.mean_motion();
         let time_in_current_orbit = if self.epsilon < 1.0 {
@@ -202,8 +207,14 @@ impl Orbit {
                 }
             }
             let delta = e - old;
+            trace!(?delta);
             if i >= 30 {
-                panic!("could not converge: {}, {}", e, delta)
+                trace!(
+                    ?e,
+                    ?delta,
+                    "could not converge, aborting after 30 iterations with imprecise result"
+                );
+                return e;
             }
             if delta.abs() < 1e-6 {
                 return e;

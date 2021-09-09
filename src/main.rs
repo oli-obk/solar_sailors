@@ -121,10 +121,12 @@ async fn main() {
             }
         }
         // Logic
-        stars.update();
-        ship.update();
-        orbits.update();
-        player.update(&mut ship.grid);
+        if !cfg!(debug_assertions) || is_key_down(KeyCode::Space) {
+            stars.update();
+            ship.update();
+            orbits.update();
+            player.update(&mut ship.grid);
+        }
 
         if is_key_pressed(KeyCode::M) {
             window = match window {

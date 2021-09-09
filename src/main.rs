@@ -45,9 +45,17 @@ async fn main() {
     };
     let mut orbits = orbits::Orbits::load();
     orbits.insert(0.0, orbital::Orbit::circular(200.0), 0.0);
-    for i in 0..10 {
-        let (orbit, angle, t) = orbital::Orbit::from_pos_dir(100.0, 0.0, 0.0, 0.02 + 0.02 * i as f64);
-        orbits.insert(angle, orbit, t);
+    // Find a parabolic orbit
+    let mut dy = 0.141;
+    loop {
+        let (orbit, angle, t) = orbital::Orbit::from_pos_dir(100.0, 0.0, 0.0, dy);
+        let diff = 1.0 - orbit.epsilon;
+        let diff = diff * 0.01;
+        if diff.abs() < 1e-6 {
+            orbits.insert(angle, orbit, t);
+            break;
+        }
+        dy += diff;
     }
 
     let sail_width = 100.0;

@@ -12,6 +12,29 @@ pub struct Orbit {
     pub epsilon: f64,
 }
 
+#[derive(Clone, Copy)]
+pub enum OrbitKind {
+    Circle,
+    Ellipse,
+    Parabola,
+    Hyperbola,
+}
+
+impl OrbitKind {
+    pub fn from_eccentricity(e: f64) -> Self {
+        assert!(e >= 0.0);
+        if e < 1e-6 {
+            Self::Circle
+        } else if (e - 1.0).abs() < 1e-6 {
+            Self::Parabola
+        } else if e < 1.0 {
+            Self::Ellipse
+        } else {
+            Self::Hyperbola
+        }
+    }
+}
+
 impl Orbit {
     pub fn circular(radius: f64) -> Self {
         Self {
@@ -46,22 +69,23 @@ impl Orbit {
         // Truncate precision to f32 to make sure we never get above 1.0 even with some float math issues
         let angle = ((cos_angle as f32) as f64).acos();
         let angles = [phi - angle, phi + angle];
-        let p = if e < 1.0 {
-            a * (1.0 - e_squared)
-        } else {
-            // hyperbolic orbit
-            -a * (e_squared - 1.0)
+        let kind = OrbitKind::from_eccentricity(e);
+        let p = match kind {
+            OrbitKind::Circle => a,
+            OrbitKind::Ellipse => a * (1.0 - e_squared),
+            OrbitKind::Parabola => (cos_angle + 1.0) * r,
+            OrbitKind::Hyperbola => -a * (e_squared - 1.0),
         };
         let orbit = Orbit { p, epsilon: e };
         for &angle in &angles {
             assert!(
-                (orbit.r(angle) - r).abs() < 1e-6,
+                (orbit.r(angle) - r).abs() < 1e-5,
                 "{} - {}",
                 orbit.r(angle),
                 r
             );
         }
-        let (t, angle) = if e < 1e-6 {
+        let (t, angle) = if let OrbitKind::Circle = kind {
             // Circle
             (0.0, phi)
         } else {
@@ -105,32 +129,28 @@ impl Orbit {
     }
 
     /// Distance from center of ellipse to perihelion/aphelion.
-    /// If it's a hyperbola, the distance is to perihelion.
+    /// If it's a hyperbola or parabola, the distance is to perihelion.
     pub fn semi_major(&self) -> f64 {
         self.p / self.eps_squared()
     }
 
     fn eps_squared(&self) -> f64 {
-        assert!(
-            (self.epsilon - 1.0).abs() < 1e-6,
-            "can not compute semi major axis for parabolic orbits"
-        );
-        if self.epsilon < 1.0 {
-            // Ellipse
-            1.0 - self.epsilon * self.epsilon
-        } else {
-            // Hyperbola
-            self.epsilon * self.epsilon - 1.0
+        match self.kind() {
+            OrbitKind::Circle => 1.0,
+            OrbitKind::Ellipse => 1.0 - self.epsilon * self.epsilon,
+            OrbitKind::Parabola => 2.0,
+            OrbitKind::Hyperbola => self.epsilon * self.epsilon - 1.0,
         }
     }
 
     /// Distance from the center of the ellipse to the point at 90° to the semi major axis
     pub fn semi_minor(&self) -> f64 {
-        assert!(
-            self.epsilon < 1.0,
-            "cannot compute semi minor axis for non-elliptical orbits"
-        );
-        self.p / (1.0 - self.epsilon * self.epsilon).sqrt()
+        match self.kind() {
+            OrbitKind::Circle => self.p,
+            OrbitKind::Ellipse => self.p / (1.0 - self.epsilon * self.epsilon).sqrt(),
+            OrbitKind::Parabola => panic!("cannot compute semi minor axis for for parabola"),
+            OrbitKind::Hyperbola => panic!("cannot compute semi minor axis for for hyperbola"),
+        }
     }
 
     pub fn area(&self) -> f64 {
@@ -158,18 +178,29 @@ impl Orbit {
         let mut i = 0;
         loop {
             let old = e;
-            if self.epsilon < 1.0 {
-                // 9.6.8
-                // E = (M - e(E*cos(E) - sin(E)))/(1 - e * cos(E))
-                let (sin, cos) = e.sin_cos();
-                e = (mean_anomaly - self.epsilon * (e * cos - sin)) / (1.0 - self.epsilon * cos);
-            } else {
-                // 9.8.14
-                let cosh = e.cosh();
-                let sinh = e.sinh();
-                // E = (M + e(E*cosh(E) - sinh(E)))/(e * cosh(E) - 1)
-                e = (mean_anomaly + self.epsilon * (e * cosh - sinh)) / (self.epsilon * cosh - 1.0);
-            };
+            match self.kind() {
+                OrbitKind::Circle => unreachable!(),
+                OrbitKind::Ellipse => {
+                    // 9.6.8
+                    // E = (M - e(E*cos(E) - sin(E)))/(1 - e * cos(E))
+                    let (sin, cos) = e.sin_cos();
+                    e = (mean_anomaly - self.epsilon * (e * cos - sin))
+                        / (1.0 - self.epsilon * cos);
+                }
+                OrbitKind::Parabola => {
+                    let u2 = e * e;
+                    let c = mean_anomaly * PI * (18.0_f64).sqrt();
+                    e = (2.0 * u2 + c) / (3.0 + 3.0 * u2);
+                }
+                OrbitKind::Hyperbola => {
+                    // 9.8.14
+                    let cosh = e.cosh();
+                    let sinh = e.sinh();
+                    // E = (M + e(E*cosh(E) - sinh(E)))/(e * cosh(E) - 1)
+                    e = (mean_anomaly + self.epsilon * (e * cosh - sinh))
+                        / (self.epsilon * cosh - 1.0);
+                }
+            }
             let delta = e - old;
             if i >= 30 {
                 panic!("could not converge: {}, {}", e, delta)
@@ -183,17 +214,39 @@ impl Orbit {
 
     /// The angle of the object after `time` seconds, when starting at angle `0`
     pub fn angle_at(&self, time: f64) -> f64 {
-        let e = self.eccentric_anomaly(time);
-        if self.epsilon < 1.0 {
-            let x = e.cos() - self.epsilon;
-            let y = e.sin() * self.eps_squared().sqrt();
-            y.atan2(x)
-        } else {
-            // 9.8.6
-            // cos(v) = (e - cosh(E))/(e * cosh(E) - 1)
-            let cosh = e.cosh();
-            let cosv = (self.epsilon - cosh) / (self.epsilon * cosh - 1.0);
-            cosv.acos() * time.signum()
+        match self.kind() {
+            OrbitKind::Circle => {
+                let mean_motion = self.mean_motion();
+                // FIXME: eliminate the cancelling out of TAU in the
+                // math below.
+                let period = TAU / mean_motion;
+                let time = time % period;
+                TAU * time / period
+            }
+            OrbitKind::Ellipse => {
+                let e = self.eccentric_anomaly(time);
+                let x = e.cos() - self.epsilon;
+                let y = e.sin() * self.eps_squared().sqrt();
+                y.atan2(x)
+            }
+            OrbitKind::Parabola => {
+                let e = self.eccentric_anomaly(time);
+                let u2 = e * e;
+                let cosv = (1.0 - u2) / (1.0 + u2);
+                cosv.acos()
+            }
+            OrbitKind::Hyperbola => {
+                let e = self.eccentric_anomaly(time);
+                // 9.8.6
+                // cos(v) = (e - cosh(E))/(e * cosh(E) - 1)
+                let cosh = e.cosh();
+                let cosv = (self.epsilon - cosh) / (self.epsilon * cosh - 1.0);
+                cosv.acos() * time.signum()
+            }
         }
+    }
+
+    pub fn kind(&self) -> OrbitKind {
+        OrbitKind::from_eccentricity(self.epsilon)
     }
 }

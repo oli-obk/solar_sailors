@@ -67,14 +67,15 @@ impl Orbits {
             draw_triangle(pos, pos + left, pos + right, GREEN);
 
             let segments = 100;
-            let (start, range) = if object.orbit.orbit.epsilon < 1.0 {
-                (0.0, TAU)
-            } else {
-                // 1/e = cos(angle)
-                let angle = (-1.0 / object.orbit.orbit.epsilon).acos();
-                let range = angle * 2.0;
-                // Subtract one degree so we don't render over infinity.
-                (-angle + TAU / 360.0, range - TAU / 180.0)
+            let (start, range) = match object.orbit.orbit.kind() {
+                orbital::OrbitKind::Circle | orbital::OrbitKind::Ellipse => (0.0, TAU),
+                orbital::OrbitKind::Parabola | orbital::OrbitKind::Hyperbola => {
+                    // 1/e = cos(angle)
+                    let angle = (-1.0 / object.orbit.orbit.epsilon).acos();
+                    let range = angle * 2.0;
+                    // Subtract one degree so we don't render over infinity.
+                    (-angle + TAU / 360.0, range - TAU / 180.0)
+                }
             };
             let (y, x) = start.sin_cos();
             let mut x = x as f32;
@@ -83,10 +84,11 @@ impl Orbits {
             let r = object.orbit.orbit.r(object.orbit.angle + start) as f32;
             y *= r;
             x *= r;
-            let color = if object.orbit.orbit.epsilon < 1.0 {
-                GRAY
-            } else {
-                RED
+            let color = match object.orbit.orbit.kind() {
+                orbital::OrbitKind::Circle => WHITE,
+                orbital::OrbitKind::Ellipse => GRAY,
+                orbital::OrbitKind::Parabola => GREEN,
+                orbital::OrbitKind::Hyperbola => RED,
             };
             for i in 0..segments {
                 let angle = step_size * (i + 1) as f64 + start;

@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 hex2d = {version = "1.1.0", default-features = false}
-macroquad = {version = "0.3", default-features = false}
+macroquad = {git = "https://github.com/not-fl3/macroquad.git", default-features = false}
 orbital = {path = "orbital", version = "0.1"}
 tracing = "0.1.26"
 

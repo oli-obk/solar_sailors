@@ -109,8 +109,7 @@ pub(crate) fn intersect(line1: (Vec2, Vec2), line2: (Vec2, Vec2)) -> Option<Vec2
     let line1_intersect_factor = starting_point_diff.perp_dot(line2.1) / line1.1.perp_dot(line2.1);
     let pos = line1.0 + line1.1 * line1_intersect_factor;
     let line2_intersect_vec = (pos - line2.0) / line2.1;
-    if line1_intersect_factor >= 0.0
-        && line1_intersect_factor <= 1.0
+    if (0.0..=1.0).contains(&line1_intersect_factor)
         // FIXME: Why 2.0???? otherwise only the left half of the sail is hit.
         && line2_intersect_vec.length_squared() < 2.0
         && line2_intersect_vec.x >= 0.0

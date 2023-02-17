@@ -91,8 +91,7 @@ impl Player {
         grid.get(&self.pos.get())
             .expect("crab not on grid")
             .attachements[self.side.get() as usize]
-            .as_ref()
-            .map(|a| &**a)
+            .as_deref()
     }
 
     fn attachement_mut<'a>(
@@ -102,8 +101,7 @@ impl Player {
         grid.get_mut(&self.pos.get())
             .expect("crab not on grid")
             .attachements[self.side.get() as usize]
-            .as_mut()
-            .map(|a| &mut **a)
+            .as_deref_mut()
     }
 
     pub fn update(&mut self, grid: &mut HashMap<hex2d::Coordinate, Segment>) {

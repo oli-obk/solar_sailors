@@ -28,6 +28,14 @@ pub(crate) struct Sail {
 
 const SIDE: f32 = SIZE / 8.0;
 
+pub(crate) struct SailParameters {
+    pub rope_positions: Reader<(Vec2, Vec2)>,
+    pub force: Reader<f32>,
+    pub current_angle: Reader<f32>,
+    pub left_rope: Reader<f32>,
+    pub right_rope: Reader<f32>,
+}
+
 impl Sail {
     pub(crate) fn new(
         left_rope: f32,
@@ -35,14 +43,7 @@ impl Sail {
         sail_width: f32,
         min_sail_width: f32,
         current_angle: f32,
-    ) -> (
-        Self,
-        Reader<(Vec2, Vec2)>,
-        Reader<f32>,
-        Reader<f32>,
-        Reader<f32>,
-        Reader<f32>,
-    ) {
+    ) -> (Self, SailParameters) {
         let (sail_width, _) = ControlledRange::new(min_sail_width, sail_width);
         let (left_rope, lr) = ControlledRange::new(1.0, left_rope);
         let (right_rope, rr) = ControlledRange::new(1.0, right_rope);
@@ -61,11 +62,13 @@ impl Sail {
                 helper_line: 0.0,
                 helper_pos: None,
             },
-            r2,
-            f,
-            cur_a,
-            lr,
-            rr,
+            SailParameters {
+                rope_positions: r2,
+                force: f,
+                current_angle: cur_a,
+                left_rope: lr,
+                right_rope: rr,
+            },
         )
     }
 }

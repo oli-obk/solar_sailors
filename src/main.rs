@@ -59,8 +59,16 @@ async fn main() {
     }
 
     let sail_width = 100.0;
-    let (sail, rope_positions, force, current_angle, left_rope, right_rope) =
-        Sail::new(200.0, 200.0, sail_width, 20.0, -FRAC_PI_3);
+    let (
+        sail,
+        ship::SailParameters {
+            rope_positions,
+            force,
+            current_angle,
+            left_rope,
+            right_rope,
+        },
+    ) = Sail::new(200.0, 200.0, sail_width, 20.0, -FRAC_PI_3);
     stars.sails.push(rope_positions);
     let mut ship = SpaceShip {
         pos: Vec2::new(0.0, 0.0),

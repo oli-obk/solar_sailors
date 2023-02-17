@@ -2,7 +2,11 @@ use std::ops::RangeInclusive;
 
 use macroquad::prelude::Vec2;
 
-use crate::ship::{SIZE, draw_gauge, segment::{Content, Element}};
+use crate::ship::{
+    draw_gauge,
+    segment::{Content, Element},
+    SIZE,
+};
 
 pub struct Gauge {
     data_sources: Vec<Box<dyn Fn() -> Option<f32>>>,

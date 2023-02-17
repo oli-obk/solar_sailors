@@ -154,13 +154,13 @@ impl<T> DerefMut for ComplexSave<T> {
 
 impl Save for ComplexSave<Coordinate> {
     fn save(&self, key: impl Display) {
-        self.x.save(format_args!("{}/x", key));
-        self.y.save(format_args!("{}/y", key));
+        self.x.save(format_args!("{key}/x"));
+        self.y.save(format_args!("{key}/y"));
     }
 
     fn load(&mut self, key: impl Display) {
-        self.x.load(format_args!("{}/x", key));
-        self.y.load(format_args!("{}/y", key));
+        self.x.load(format_args!("{key}/x"));
+        self.y.load(format_args!("{key}/y"));
     }
 }
 

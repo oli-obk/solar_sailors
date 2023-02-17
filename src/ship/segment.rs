@@ -57,11 +57,11 @@ impl<T: Attachement + ?Sized> Attachement for Box<T> {
 
 impl<T: Element + ?Sized> Element for Box<T> {
     fn update(&mut self, pos: Vec2) {
-        (&mut **self).update(pos)
+        (**self).update(pos)
     }
 
     fn draw(&self, pos: Vec2) {
-        (&**self).draw(pos)
+        (**self).draw(pos)
     }
 }
 
@@ -117,7 +117,7 @@ pub const SIZE: f32 = 100.0;
 pub(crate) const ATTACHEMENT_OFFSETS: [Vec2; 6] = {
     let x = SIZE / 2.0;
     let x2 = x / 2.0;
-    let x3 = x * 0.86602540378; // (x * 0.75).sqrt()
+    let x3 = x * 0.866_025_4; // (x * 0.75).sqrt()
     [
         const_vec2!([0.0, -x]),
         const_vec2!([x3, -x2]),

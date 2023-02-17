@@ -10,15 +10,15 @@ mod segments {
 }
 
 mod attachements {
-    mod sail;
     mod map;
-    pub use sail::*;
+    mod sail;
     pub use map::*;
+    pub use sail::*;
 }
 
+pub use attachements::*;
 pub use segment::*;
 pub use segments::*;
-pub use attachements::*;
 
 pub(crate) struct SpaceShip {
     pub(crate) pos: Vec2,
@@ -26,7 +26,7 @@ pub(crate) struct SpaceShip {
 }
 
 // sqrt is not const fn, so we inline sqrt(3)
-pub const SQRT3: f32 = 1.73205080757;
+pub const SQRT3: f32 = 1.732_050_8;
 pub(crate) const SPACING: Spacing = Spacing::FlatTop(segment::SIZE / SQRT3);
 
 impl SpaceShip {

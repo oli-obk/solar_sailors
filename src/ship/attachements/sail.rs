@@ -96,7 +96,7 @@ impl crate::ship::Attachement for Sail {
 
         // Add some dampening for the velocity so you don't have to manually
         // control the direction all the time
-        if dir == 0.0 || f < 10.0 {
+        if self.current_angular_velocity.abs() * 10000.0 < 1.0 {
             self.current_angular_velocity *= 0.95;
         }
 

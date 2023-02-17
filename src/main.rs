@@ -77,11 +77,21 @@ async fn main() {
     let mut attachements: [Option<Box<dyn Attachement>>; 6] = Default::default();
     attachements[1] = Some(Box::new(sail));
     attachements[4] = Some(Box::new(map));
+    let delta_force = force.clone();
+    let mut last_force = delta_force.get().unwrap();
     ship.grid.insert(
         (0, 0).into(),
         Segment {
             content: Some(Box::new(Gauge::new(
-                vec![Box::new(move || force.get()) as _],
+                vec![
+                    Box::new(move || force.get()) as _,
+                    Box::new(move || {
+                        let new = delta_force.get()?;
+                        let diff = new - last_force;
+                        last_force = new;
+                        Some(new + diff * 100.0)
+                    }) as _,
+                ],
                 0.0..=sail_width,
                 (-FRAC_PI_3 * 2.0)..=(FRAC_PI_3 * 2.0),
             ))),

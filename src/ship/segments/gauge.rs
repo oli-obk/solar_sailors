@@ -9,7 +9,7 @@ use crate::ship::{
 };
 
 pub struct Gauge {
-    data_sources: Vec<Box<dyn Fn() -> Option<f32>>>,
+    data_sources: Vec<Box<dyn FnMut() -> Option<f32>>>,
     data: Vec<f32>,
     value_range: RangeInclusive<f32>,
     handle_range: RangeInclusive<f32>,
@@ -17,13 +17,13 @@ pub struct Gauge {
 
 impl Gauge {
     pub fn new(
-        data_sources: impl IntoIterator<Item = Box<dyn Fn() -> Option<f32>>>,
+        data_sources: impl IntoIterator<Item = Box<dyn FnMut() -> Option<f32>>>,
         value_range: RangeInclusive<f32>,
         handle_range: RangeInclusive<f32>,
     ) -> Self {
-        let data_sources: Vec<_> = data_sources.into_iter().collect();
+        let mut data_sources: Vec<_> = data_sources.into_iter().collect();
         let data = data_sources
-            .iter()
+            .iter_mut()
             .map(|f| f().unwrap_or(*value_range.start()))
             .collect();
         Self {
@@ -37,7 +37,7 @@ impl Gauge {
 
 impl Element for Gauge {
     fn update(&mut self, _pos: Vec2) {
-        for (source, dest) in self.data_sources.iter().zip(&mut self.data) {
+        for (source, dest) in self.data_sources.iter_mut().zip(&mut self.data) {
             if let Some(source) = source() {
                 *dest = source;
             }

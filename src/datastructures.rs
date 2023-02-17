@@ -66,6 +66,7 @@ impl<T: Copy> SetGet for T {
     }
 }
 
+#[derive(Clone)]
 pub struct Reader<T> {
     output: Weak<RefCell<T>>,
 }

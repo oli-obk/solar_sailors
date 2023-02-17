@@ -119,11 +119,11 @@ pub(crate) const ATTACHEMENT_OFFSETS: [Vec2; 6] = {
     let x2 = x / 2.0;
     let x3 = x * 0.866_025_4; // (x * 0.75).sqrt()
     [
-        const_vec2!([0.0, -x]),
-        const_vec2!([x3, -x2]),
-        const_vec2!([x3, x2]),
-        const_vec2!([0.0, x]),
-        const_vec2!([-x3, x2]),
-        const_vec2!([-x3, -x2]),
+        Vec2::from_array([0.0, -x]),
+        Vec2::from_array([x3, -x2]),
+        Vec2::from_array([x3, x2]),
+        Vec2::from_array([0.0, x]),
+        Vec2::from_array([-x3, x2]),
+        Vec2::from_array([-x3, -x2]),
     ]
 };

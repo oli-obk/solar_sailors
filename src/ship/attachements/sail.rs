@@ -90,13 +90,15 @@ impl crate::ship::Attachement for Sail {
         // Only change angular velocity if rope difference is above a threshold.
         let dir = dir.signum() * (dir.abs() - threshold).max(0.0);
         // Scale the velocity acceleration to feel nicer
-        let scale = 0.00000001;
+        let scale = 0.000000001;
 
         self.current_angular_velocity += dir * f * scale;
 
+        let threshold = 10_000.0 / scale;
+
         // Add some dampening for the velocity so you don't have to manually
         // control the direction all the time
-        if self.current_angular_velocity.abs() * 10000.0 < 1.0 {
+        if self.current_angular_velocity.abs() * threshold < 1.0 {
             self.current_angular_velocity *= 0.95;
         }
 

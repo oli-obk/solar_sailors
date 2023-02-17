@@ -85,7 +85,7 @@ pub async fn transaction_loop<F: Future<Output = ()>>(mut f: impl FnMut() -> F) 
             for i in 0..len() {
                 let key = key(i).unwrap();
                 if key.starts_with(&oddstr) {
-                    let new_key = format!("{}/{}", odd as u8, &key[1..]);
+                    let new_key = format!("{}/{}", odd as u8, &key[2..]);
                     let val = get(&key).unwrap();
                     set(&new_key, &val);
                 }

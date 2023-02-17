@@ -16,8 +16,8 @@ tracing = "0.1.26"
 quad-storage-sys = "0.1.0"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-directories = "3.0.2"
-copy_dir = "0.1.2"
+directories = "4"
+dircpy = "0.3"
 
 [profile.release]
 opt-level = "s"

@@ -82,11 +82,8 @@ async fn main() {
         Segment {
             content: Some(Box::new(Gauge::new(
                 [
-                    (GaugeHandle::Absolute, Box::new(move |_| force.get()) as _),
-                    (
-                        GaugeHandle::Relative,
-                        Box::new(move |diff| Some(diff * 100.0_f32)) as _,
-                    ),
+                    GaugeHandle::from(move |_| force.get()),
+                    GaugeHandle::from(move |diff| Some(diff * 100.0_f32)).relative(),
                 ],
                 0.0..=sail_width,
                 (-FRAC_PI_3 * 2.0)..=(FRAC_PI_3 * 2.0),
@@ -99,19 +96,11 @@ async fn main() {
         Segment {
             content: Some(Box::new(Gauge::new(
                 [
-                    (
-                        GaugeHandle::Absolute,
-                        Box::new(move |_| Some(-current_angle.get()?)) as _,
-                    ),
-                    (
-                        GaugeHandle::Relative,
-                        Box::new(move |diff| Some(diff * 1000.0_f32)) as _,
-                    ),
-                    (
-                        GaugeHandle::Absolute,
-                        Box::new(move |_| Some((right_rope.get()? - left_rope.get()?) / 10.0 + PI))
-                            as _,
-                    ),
+                    GaugeHandle::from(move |_| Some(-current_angle.get()?)),
+                    GaugeHandle::from(move |diff| Some(diff * 1000.0_f32)).relative(),
+                    GaugeHandle::from(move |_| {
+                        Some((right_rope.get()? - left_rope.get()?) / 10.0 + PI)
+                    }),
                 ],
                 -FRAC_PI_2..=FRAC_PI_2,
                 -FRAC_PI_2..=FRAC_PI_2,

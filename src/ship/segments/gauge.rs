@@ -63,8 +63,7 @@ impl Element for Gauge {
             if let Some(source) = source(prev_diff) {
                 let new = source.make_absolute(prev);
                 prev_diff = new - *dest;
-                *dest = new;
-                prev = *dest;
+                (*dest, prev) = (new, *dest);
             }
         }
     }

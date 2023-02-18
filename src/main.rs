@@ -83,7 +83,7 @@ async fn main() {
         (0, 0).into(),
         Segment {
             content: Some(Box::new(Gauge::new(
-                vec![
+                [
                     Box::new(move || Some(force.get()?.into())) as _,
                     Box::new(move || {
                         let new = delta_force.get()?;
@@ -104,7 +104,7 @@ async fn main() {
         (0, -1).into(),
         Segment {
             content: Some(Box::new(Gauge::new(
-                vec![
+                [
                     Box::new(move || Some((-current_angle.get()?).into())) as _,
                     Box::new(move || {
                         Some(((right_rope.get()? - left_rope.get()?) / 10.0 + PI).into())

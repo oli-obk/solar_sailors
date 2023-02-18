@@ -98,6 +98,10 @@ async fn main() {
             attachements,
         },
     );
+    let delta_angle = current_angle.clone();
+    let mut last_angle = delta_angle.get().unwrap();
+    let right_rope2 = right_rope.clone();
+    let left_rope2 = left_rope.clone();
     ship.grid.insert(
         (0, -1).into(),
         Segment {
@@ -105,6 +109,12 @@ async fn main() {
                 vec![
                     Box::new(move || current_angle.get().map(|a| -a)) as _,
                     Box::new(move || Some((right_rope.get()? - left_rope.get()?) / 10.0 + PI)) as _,
+                    Box::new(move || {
+                        let new = delta_angle.get()?;
+                        let diff = new - last_angle;
+                        last_angle = new;
+                        Some(diff * 1000.0 + (right_rope2.get()? - left_rope2.get()?) / 10.0 + PI)
+                    }) as _,
                 ],
                 -FRAC_PI_2..=FRAC_PI_2,
                 -FRAC_PI_2..=FRAC_PI_2,

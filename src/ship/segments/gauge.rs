@@ -3,19 +3,18 @@ use std::ops::RangeInclusive;
 use macroquad::prelude::Vec2;
 
 use crate::ship::{
-    draw_gauge,
     segment::{Content, Element},
     SIZE,
 };
 
-enum GaugeHandleKind {
+pub enum GaugeHandleKind {
     Absolute,
     // Relative to the previous gauge handle in the list
     Relative,
 }
 
 pub struct GaugeHandle {
-    kind: GaugeHandleKind,
+    pub kind: GaugeHandleKind,
     source: Box<dyn FnMut(f32) -> Option<f32>>,
 }
 
@@ -38,10 +37,10 @@ impl GaugeHandle {
 }
 
 pub struct Gauge {
-    data_sources: Vec<GaugeHandle>,
-    data: Vec<f32>,
-    value_range: RangeInclusive<f32>,
-    handle_range: RangeInclusive<f32>,
+    pub data_sources: Vec<GaugeHandle>,
+    pub data: Vec<f32>,
+    pub value_range: RangeInclusive<f32>,
+    pub handle_range: RangeInclusive<f32>,
 }
 
 impl Gauge {
@@ -66,30 +65,17 @@ impl Gauge {
 
 impl Element for Gauge {
     fn update(&mut self, _pos: Vec2) {
-        let mut prev = *self.value_range.start();
         let mut prev_diff = 0.0;
         for (gh, dest) in self.data_sources.iter_mut().zip(&mut self.data) {
-            if let Some(source) = (gh.source)(prev_diff) {
-                let new = match gh.kind {
-                    GaugeHandleKind::Absolute => source,
-                    GaugeHandleKind::Relative => source + prev,
-                };
+            if let Some(new) = (gh.source)(prev_diff) {
                 prev_diff = new - *dest;
-                (*dest, prev) = (new, *dest);
+                *dest = new;
             }
         }
     }
 
     fn draw(&self, pos: Vec2) {
-        draw_gauge(
-            pos,
-            SIZE * 0.45,
-            self.data.iter().copied(),
-            *self.value_range.start(),
-            *self.handle_range.start(),
-            *self.value_range.end(),
-            *self.handle_range.end(),
-        );
+        self.draw_inner(pos, SIZE * 0.45);
     }
 }
 impl Content for Gauge {}

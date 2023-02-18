@@ -6,7 +6,7 @@ use macroquad::prelude::*;
 mod segment;
 mod segments {
     mod gauge;
-    pub use gauge::{Gauge, GaugeHandle};
+    pub use gauge::{Gauge, GaugeHandle, GaugeHandleKind};
 }
 
 mod attachements {
@@ -44,28 +44,36 @@ impl SpaceShip {
     }
 }
 
-fn draw_gauge(
-    pos: Vec2,
-    size: f32,
-    val: impl IntoIterator<Item = f32>,
-    min: f32,
-    min_handle_pos: f32,
-    max: f32,
-    max_handle_pos: f32,
-) {
-    let start = min_handle_pos;
-    let end = max_handle_pos;
-    let range = max_handle_pos - min_handle_pos;
-    draw_gauge_meter(pos, start, size, WHITE);
-    draw_gauge_meter(pos, end, size, WHITE);
-    let colors = [RED, GREEN, PINK, YELLOW];
-    for (i, (val, &color)) in val.into_iter().zip(&colors).enumerate() {
-        let percent = (val - min) / (max - min);
-        let percent_angle = end - range * percent;
-        draw_gauge_meter(pos, percent_angle, size * 0.75, color);
-        draw_circle(pos.x, pos.y, size / 5.0 - i as f32, color);
+impl Gauge {
+    fn draw_inner(&self, pos: Vec2, size: f32) {
+        let start = *self.handle_range.start();
+        let end = *self.handle_range.end();
+        let range = end - start;
+        let min = *self.value_range.start();
+        let max = *self.value_range.end();
+        draw_gauge_meter(pos, start, size, WHITE);
+        draw_gauge_meter(pos, end, size, WHITE);
+        let colors = [RED, GREEN, PINK, YELLOW];
+        let mut prev = min;
+        for (i, ((&val, &color), gh)) in self
+            .data
+            .iter()
+            .zip(&colors)
+            .zip(&self.data_sources)
+            .enumerate()
+        {
+            let val = match gh.kind {
+                GaugeHandleKind::Absolute => val,
+                GaugeHandleKind::Relative => val + prev,
+            };
+            prev = val;
+            let percent = (val - min) / (max - min);
+            let percent_angle = end - range * percent;
+            draw_gauge_meter(pos, percent_angle, size * 0.75, color);
+            draw_circle(pos.x, pos.y, size / 5.0 - i as f32, color);
+        }
+        draw_circle_lines(pos.x, pos.y, size, 1.0, RED);
     }
-    draw_circle_lines(pos.x, pos.y, size, 1.0, RED);
 }
 
 fn draw_gauge_meter(pos: Vec2, angle: f32, size: f32, color: Color) {

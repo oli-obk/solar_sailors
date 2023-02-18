@@ -77,16 +77,14 @@ async fn main() {
     let mut attachements: [Option<Box<dyn Attachement>>; 6] = Default::default();
     attachements[1] = Some(Box::new(sail));
     attachements[4] = Some(Box::new(map));
-    let delta_force = force.clone();
-    let mut last_force = delta_force.get().unwrap();
+    let mut last_force = force.get().unwrap();
     ship.grid.insert(
         (0, 0).into(),
         Segment {
             content: Some(Box::new(Gauge::new(
                 [
-                    Box::new(move || Some(force.get()?.into())) as _,
-                    Box::new(move || {
-                        let new = delta_force.get()?;
+                    Box::new(move |_| Some(force.get()?.into())) as _,
+                    Box::new(move |new| {
                         let diff = new - last_force;
                         last_force = new;
                         Some(GaugeHandle::Relative(diff * 100.0))
@@ -98,22 +96,20 @@ async fn main() {
             attachements,
         },
     );
-    let delta_angle = current_angle.clone();
-    let mut last_angle = delta_angle.get().unwrap();
+    let mut last_angle = -current_angle.get().unwrap();
     ship.grid.insert(
         (0, -1).into(),
         Segment {
             content: Some(Box::new(Gauge::new(
                 [
-                    Box::new(move || Some((-current_angle.get()?).into())) as _,
-                    Box::new(move || {
-                        Some(((right_rope.get()? - left_rope.get()?) / 10.0 + PI).into())
-                    }) as _,
-                    Box::new(move || {
-                        let new = delta_angle.get()?;
+                    Box::new(move |_| Some((-current_angle.get()?).into())) as _,
+                    Box::new(move |new| {
                         let diff = new - last_angle;
                         last_angle = new;
                         Some(GaugeHandle::Relative(diff * 1000.0))
+                    }) as _,
+                    Box::new(move |_| {
+                        Some(((right_rope.get()? - left_rope.get()?) / 10.0 + PI).into())
                     }) as _,
                 ],
                 -FRAC_PI_2..=FRAC_PI_2,

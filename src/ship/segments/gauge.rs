@@ -29,7 +29,7 @@ impl GaugeHandle {
 }
 
 pub struct Gauge {
-    data_sources: Vec<Box<dyn FnMut() -> Option<GaugeHandle>>>,
+    data_sources: Vec<Box<dyn FnMut(f32) -> Option<GaugeHandle>>>,
     data: Vec<f32>,
     value_range: RangeInclusive<f32>,
     handle_range: RangeInclusive<f32>,
@@ -37,7 +37,7 @@ pub struct Gauge {
 
 impl Gauge {
     pub fn new(
-        data_sources: impl IntoIterator<Item = Box<dyn FnMut() -> Option<GaugeHandle>>>,
+        data_sources: impl IntoIterator<Item = Box<dyn FnMut(f32) -> Option<GaugeHandle>>>,
         value_range: RangeInclusive<f32>,
         handle_range: RangeInclusive<f32>,
     ) -> Self {
@@ -47,7 +47,7 @@ impl Gauge {
         let data = data_sources
             .iter_mut()
             .map(|f| {
-                let val = f().map_or(default, |v| v.make_absolute(prev));
+                let val = f(prev).map_or(default, |v| v.make_absolute(prev));
                 prev = val;
                 val
             })
@@ -65,7 +65,7 @@ impl Element for Gauge {
     fn update(&mut self, _pos: Vec2) {
         let mut prev = *self.value_range.start();
         for (source, dest) in self.data_sources.iter_mut().zip(&mut self.data) {
-            if let Some(source) = source() {
+            if let Some(source) = source(prev) {
                 *dest = source.make_absolute(prev);
                 prev = *dest;
             }

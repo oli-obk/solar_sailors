@@ -6,7 +6,7 @@ use macroquad::prelude::*;
 mod segment;
 mod segments {
     mod gauge;
-    pub use gauge::Gauge;
+    pub use gauge::{Gauge, GaugeHandle};
 }
 
 mod attachements {

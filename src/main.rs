@@ -8,7 +8,7 @@ use macroquad::prelude::{
     coroutines::{start_coroutine, wait_seconds},
     *,
 };
-use ship::{Gauge, Segment, SpaceShip};
+use ship::{Gauge, GaugeHandle, Segment, SpaceShip};
 use stars::Stars;
 
 use crate::{
@@ -84,12 +84,12 @@ async fn main() {
         Segment {
             content: Some(Box::new(Gauge::new(
                 vec![
-                    Box::new(move || force.get()) as _,
+                    Box::new(move || Some(force.get()?.into())) as _,
                     Box::new(move || {
                         let new = delta_force.get()?;
                         let diff = new - last_force;
                         last_force = new;
-                        Some(new + diff * 100.0)
+                        Some(GaugeHandle::Relative(diff * 100.0))
                     }) as _,
                 ],
                 0.0..=sail_width,
@@ -100,20 +100,20 @@ async fn main() {
     );
     let delta_angle = current_angle.clone();
     let mut last_angle = delta_angle.get().unwrap();
-    let right_rope2 = right_rope.clone();
-    let left_rope2 = left_rope.clone();
     ship.grid.insert(
         (0, -1).into(),
         Segment {
             content: Some(Box::new(Gauge::new(
                 vec![
-                    Box::new(move || current_angle.get().map(|a| -a)) as _,
-                    Box::new(move || Some((right_rope.get()? - left_rope.get()?) / 10.0 + PI)) as _,
+                    Box::new(move || Some((-current_angle.get()?).into())) as _,
+                    Box::new(move || {
+                        Some(((right_rope.get()? - left_rope.get()?) / 10.0 + PI).into())
+                    }) as _,
                     Box::new(move || {
                         let new = delta_angle.get()?;
                         let diff = new - last_angle;
                         last_angle = new;
-                        Some(diff * 1000.0 + (right_rope2.get()? - left_rope2.get()?) / 10.0 + PI)
+                        Some(GaugeHandle::Relative(diff * 1000.0))
                     }) as _,
                 ],
                 -FRAC_PI_2..=FRAC_PI_2,

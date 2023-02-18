@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, f32::consts::PI};
 
 use hex2d::Spacing;
 use macroquad::prelude::*;
@@ -62,15 +62,28 @@ impl Gauge {
             .zip(&self.data_sources)
             .enumerate()
         {
-            let val = match gh.kind {
-                GaugeHandleKind::Absolute => val,
-                GaugeHandleKind::Relative => val + prev,
+            let draw = |f: fn(Vec2, f32, f32, Color), val| {
+                let percent = (val - min) / (max - min);
+                let percent_angle = end - range * percent;
+                f(pos, percent_angle, size * 0.75, color);
             };
-            prev = val;
-            let percent = (val - min) / (max - min);
-            let percent_angle = end - range * percent;
-            draw_gauge_meter(pos, percent_angle, size * 0.75, color);
-            draw_circle(pos.x, pos.y, size / 5.0 - i as f32, color);
+            match gh.kind {
+                GaugeHandleKind::Absolute => {
+                    prev = val;
+                    draw_circle(pos.x, pos.y, size / 5.0 - i as f32, color);
+                    draw(draw_gauge_meter, val);
+                }
+                GaugeHandleKind::Relative => {
+                    let steps = (val / (max - min) * 180.0).abs() as u32;
+                    for x in 0..steps {
+                        draw(
+                            draw_rel_gauge_meter,
+                            prev + val.signum() * ((x + 1) as f32) * 5.0 / 180.0 * PI,
+                        );
+                    }
+                    prev += val;
+                }
+            }
         }
         draw_circle_lines(pos.x, pos.y, size, 1.0, RED);
     }
@@ -79,4 +92,17 @@ impl Gauge {
 fn draw_gauge_meter(pos: Vec2, angle: f32, size: f32, color: Color) {
     let vec = angle2vec(angle) * size;
     draw_line(pos.x, pos.y, pos.x + vec.x, pos.y + vec.y, 1.0, color);
+}
+
+fn draw_rel_gauge_meter(pos: Vec2, angle: f32, size: f32, color: Color) {
+    let vec = angle2vec(angle) * size;
+    let vec2 = vec * 0.75;
+    draw_line(
+        pos.x + vec2.x,
+        pos.y + vec2.y,
+        pos.x + vec.x,
+        pos.y + vec.y,
+        1.0,
+        color,
+    );
 }

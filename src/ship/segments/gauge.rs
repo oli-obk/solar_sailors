@@ -42,15 +42,9 @@ impl Gauge {
         handle_range: RangeInclusive<f32>,
     ) -> Self {
         let mut data_sources: Vec<_> = data_sources.into_iter().collect();
-        let default = *value_range.start();
-        let mut prev = default;
         let data = data_sources
             .iter_mut()
-            .map(|f| {
-                let val = f(prev).map_or(default, |v| v.make_absolute(prev));
-                prev = val;
-                val
-            })
+            .map(|f| f(0.0).map_or(*value_range.start(), |v| v.make_absolute(0.0)))
             .collect();
         Self {
             data_sources,
@@ -64,9 +58,12 @@ impl Gauge {
 impl Element for Gauge {
     fn update(&mut self, _pos: Vec2) {
         let mut prev = *self.value_range.start();
+        let mut prev_diff = 0.0;
         for (source, dest) in self.data_sources.iter_mut().zip(&mut self.data) {
-            if let Some(source) = source(prev) {
-                *dest = source.make_absolute(prev);
+            if let Some(source) = source(prev_diff) {
+                let new = source.make_absolute(prev);
+                prev_diff = new - *dest;
+                *dest = new;
                 prev = *dest;
             }
         }

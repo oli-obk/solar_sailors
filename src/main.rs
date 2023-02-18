@@ -77,18 +77,13 @@ async fn main() {
     let mut attachements: [Option<Box<dyn Attachement>>; 6] = Default::default();
     attachements[1] = Some(Box::new(sail));
     attachements[4] = Some(Box::new(map));
-    let mut last_force = force.get().unwrap();
     ship.grid.insert(
         (0, 0).into(),
         Segment {
             content: Some(Box::new(Gauge::new(
                 [
                     Box::new(move |_| Some(force.get()?.into())) as _,
-                    Box::new(move |new| {
-                        let diff = new - last_force;
-                        last_force = new;
-                        Some(GaugeHandle::Relative(diff * 100.0))
-                    }) as _,
+                    Box::new(move |diff| Some(GaugeHandle::Relative(diff * 100.0_f32))) as _,
                 ],
                 0.0..=sail_width,
                 (-FRAC_PI_3 * 2.0)..=(FRAC_PI_3 * 2.0),
@@ -96,18 +91,13 @@ async fn main() {
             attachements,
         },
     );
-    let mut last_angle = -current_angle.get().unwrap();
     ship.grid.insert(
         (0, -1).into(),
         Segment {
             content: Some(Box::new(Gauge::new(
                 [
                     Box::new(move |_| Some((-current_angle.get()?).into())) as _,
-                    Box::new(move |new| {
-                        let diff = new - last_angle;
-                        last_angle = new;
-                        Some(GaugeHandle::Relative(diff * 1000.0))
-                    }) as _,
+                    Box::new(move |diff| Some(GaugeHandle::Relative(diff * 1000.0_f32))) as _,
                     Box::new(move |_| {
                         Some(((right_rope.get()? - left_rope.get()?) / 10.0 + PI).into())
                     }) as _,

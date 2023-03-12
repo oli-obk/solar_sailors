@@ -74,7 +74,10 @@ impl Gauge {
                     draw(draw_gauge_meter, val);
                 }
                 GaugeHandleKind::Relative => {
-                    let steps = (val / (max - min) * 180.0).abs() as u32;
+                    let mut steps = (val / (max - min) * 180.0).abs() as u32;
+                    if val != 0.0 {
+                        steps += 1;
+                    }
                     for x in 0..steps {
                         draw(
                             draw_rel_gauge_meter,

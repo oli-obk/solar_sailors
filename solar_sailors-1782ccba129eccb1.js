@@ -69,7 +69,7 @@ function initSync(module) {
 
 async function init(input) {
     if (typeof input === 'undefined') {
-        input = new URL('solar_sailors-fe9b5e4200bf7d79_bg.wasm', import.meta.url);
+        input = new URL('solar_sailors-1782ccba129eccb1_bg.wasm', import.meta.url);
     }
     const imports = getImports();
 

@@ -1,7 +1,7 @@
 use std::{
     cmp::Ordering,
     fmt::{Debug, Display},
-    ops::{AddAssign, Deref, DerefMut, MulAssign, RemAssign, SubAssign},
+    ops::{AddAssign, Deref, DerefMut, DivAssign, MulAssign, RemAssign, SubAssign},
     str::FromStr,
 };
 
@@ -87,6 +87,12 @@ impl<T: Save + AddAssign> AddAssign<T> for Saveable<T> {
 impl<T: Save + MulAssign> MulAssign<T> for Saveable<T> {
     fn mul_assign(&mut self, rhs: T) {
         self.update(|val| *val *= rhs)
+    }
+}
+
+impl<T: Save + DivAssign> DivAssign<T> for Saveable<T> {
+    fn div_assign(&mut self, rhs: T) {
+        self.update(|val| *val /= rhs)
     }
 }
 

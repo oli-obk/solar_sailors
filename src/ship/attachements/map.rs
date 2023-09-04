@@ -2,9 +2,11 @@ use std::f32::consts::FRAC_PI_2;
 
 use macroquad::prelude::*;
 
+use crate::{datastructures::SetGet, save::Saveable};
+
 pub struct Map {
     pub texture: Texture2D,
-    pub zoom: f32,
+    pub zoom: Saveable<f32>,
     pub small_zoom: f32,
 }
 
@@ -27,7 +29,7 @@ impl crate::ship::Attachement for Map {
 
     fn draw(&self, mut pos: macroquad::prelude::Vec2, angle: f32) {
         let (y, x) = (angle - FRAC_PI_2).sin_cos();
-        let zoom = self.zoom * self.small_zoom;
+        let zoom = self.zoom.get() * self.small_zoom;
         pos += vec2(x, y) * 1024.0 / 2.0 * zoom;
         pos -= vec2(self.texture.width(), self.texture.height()) / 2.0 * zoom;
         draw_texture_ex(

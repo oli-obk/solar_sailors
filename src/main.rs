@@ -8,6 +8,7 @@ use macroquad::prelude::{
     coroutines::{start_coroutine, wait_seconds},
     *,
 };
+use save::Saveable;
 use ship::{Gauge, GaugeHandle, Segment, SpaceShip};
 use stars::Stars;
 
@@ -40,7 +41,7 @@ async fn main() {
     let orbit_render_target = render_target(1024, 1024);
     let map = Map {
         texture: orbit_render_target.texture.clone(),
-        zoom: 0.5,
+        zoom: Saveable::new(0.5, "map_zoom"),
         small_zoom: 1.0,
     };
     let mut orbits = orbits::Orbits::load();

@@ -31,6 +31,6 @@ jobs:
         env:
           BUTLER_CREDENTIALS: ${{ secrets.BUTLER_CREDENTIALS }}
           CHANNEL: HTML5
-          ITCH_GAME: solar_sailors
+          ITCH_GAME: solar-sailors
           ITCH_USER: oli-obk
           PACKAGE: dist

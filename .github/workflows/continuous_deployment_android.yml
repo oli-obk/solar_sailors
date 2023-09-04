@@ -28,6 +28,6 @@ jobs:
         env:
           BUTLER_CREDENTIALS: ${{ secrets.BUTLER_CREDENTIALS }}
           CHANNEL: android
-          ITCH_GAME: solar_sailors
+          ITCH_GAME: solar-sailors
           ITCH_USER: oli-obk
           PACKAGE: dist/solar_sailors.apk

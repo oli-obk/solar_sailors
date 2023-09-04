@@ -39,7 +39,7 @@ async fn main() {
     let mut stars = Stars::default();
     let orbit_render_target = render_target(1024, 1024);
     let map = Map {
-        texture: orbit_render_target.texture,
+        texture: orbit_render_target.texture.clone(),
         zoom: 0.5,
         small_zoom: 1.0,
     };
@@ -151,14 +151,14 @@ async fn main() {
 
         let mut cam = Camera2D::default();
         cam.zoom /= 300.0;
-        cam.render_target = Some(orbit_render_target);
+        cam.render_target = Some(orbit_render_target.clone());
         set_camera(&cam);
         clear_background(Color::default());
         orbits.draw();
 
         let mut cam = Camera2D::default();
         cam.zoom.x = 1.0 / (screen_width() / 2.0);
-        cam.zoom.y = -1.0 / (screen_height() / 2.0);
+        cam.zoom.y = 1.0 / (screen_height() / 2.0);
         set_camera(&cam);
 
         // Drawing

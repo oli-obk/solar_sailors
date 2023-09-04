@@ -31,7 +31,7 @@ impl crate::ship::Attachement for Map {
         pos += vec2(x, y) * 1024.0 / 2.0 * zoom;
         pos -= vec2(self.texture.width(), self.texture.height()) / 2.0 * zoom;
         draw_texture_ex(
-            self.texture,
+            &self.texture,
             pos.x,
             pos.y,
             WHITE,

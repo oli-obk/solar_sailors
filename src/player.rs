@@ -255,7 +255,7 @@ impl Player {
         };
 
         draw_texture_ex(
-            self.texture,
+            &self.texture,
             pos.x,
             pos.y,
             WHITE,

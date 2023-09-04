@@ -135,7 +135,7 @@ async fn main() {
             }
         }
         // Logic
-        if !cfg!(debug_assertions) || is_key_down(KeyCode::Space) {
+        if !(cfg!(debug_assertions) && is_key_down(KeyCode::Space)) {
             stars.update();
             ship.update();
             orbits.update();

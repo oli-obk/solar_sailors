@@ -19,6 +19,9 @@ pub struct Stars {
     pub sails: Vec<Reader<(Vec2, Vec2)>>,
     w: f32,
     h: f32,
+    // Maximum sizes of the window over the runtime of the program
+    max_w: f32,
+    max_h: f32,
 }
 
 pub fn rand_in_rect(rect: Rect) -> Vec2 {
@@ -37,14 +40,18 @@ impl Stars {
             self.w = w;
             self.h = h;
             let count = (w * h) as usize / 5000;
-            self.positions = (0..count)
-                .map(|_| Star {
-                    pos: rand_in_rect(rect),
-                    rot: f32::gen_range(0., PI),
-                    size: f32::gen_range(1., 8.),
-                })
-                .collect();
-
+            if self.w > self.max_w || self.h > self.max_h {
+                self.max_h = self.h.max(self.max_h);
+                self.max_w = self.w.max(self.max_w);
+                // TODO: only add new ones in the newly added screen space
+                self.positions = (0..count)
+                    .map(|_| Star {
+                        pos: rand_in_rect(rect),
+                        rot: f32::gen_range(0., PI),
+                        size: f32::gen_range(1., 8.),
+                    })
+                    .collect();
+            }
             self.photons = (0..count)
                 .map(|_| Photon {
                     pos: rand_in_rect(rect),

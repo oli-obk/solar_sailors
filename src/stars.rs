@@ -1,11 +1,20 @@
+use std::f32::consts::PI;
+
 use macroquad::prelude::*;
 use macroquad::rand::RandomRange;
 
 use crate::datastructures::Reader;
 
+struct Star {
+    pos: Vec2,
+    rot: f32,
+    size: f32,
+}
+
 #[derive(Default)]
 pub struct Stars {
-    positions: Vec<Vec2>,
+    /// Positions and rotations of the stars
+    positions: Vec<Star>,
     photons: Vec<Photon>,
     pub sails: Vec<Reader<(Vec2, Vec2)>>,
     w: f32,
@@ -28,7 +37,13 @@ impl Stars {
             self.w = w;
             self.h = h;
             let count = (w * h) as usize / 5000;
-            self.positions = (0..count).map(|_| rand_in_rect(rect)).collect();
+            self.positions = (0..count)
+                .map(|_| Star {
+                    pos: rand_in_rect(rect),
+                    rot: f32::gen_range(0., PI),
+                    size: f32::gen_range(1., 8.),
+                })
+                .collect();
 
             self.photons = (0..count)
                 .map(|_| Photon {
@@ -59,8 +74,8 @@ impl Stars {
         }
     }
     pub fn draw(&self) {
-        for &pos in &self.positions {
-            draw_star(pos, 5.0);
+        for star in &self.positions {
+            star.draw();
         }
 
         for photon in &self.photons {
@@ -76,12 +91,15 @@ impl Stars {
     }
 }
 
-fn draw_star(pos: Vec2, size: f32) {
-    let y = f32::sin(std::f32::consts::PI / 3.0) * size;
-    let x = size / 2.0;
-    let left = Vec2::new(-x, y);
-    let right = Vec2::new(x, y);
-    draw_triangle(pos, pos + left, pos + right, WHITE)
+impl Star {
+    fn draw(&self) {
+        let y = f32::sin(std::f32::consts::PI / 3.0) * self.size;
+        let x = self.size / 2.0;
+        let rot = Vec2::from_angle(self.rot);
+        let left = rot.rotate(Vec2::new(-x, y));
+        let right = rot.rotate(Vec2::new(x, y));
+        draw_triangle(self.pos, self.pos + left, self.pos + right, WHITE)
+    }
 }
 
 #[test]

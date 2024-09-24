@@ -157,6 +157,9 @@ async fn main() {
         clear_background(Color::default());
         orbits.draw();
 
+        // HACK: remove after https://github.com/not-fl3/macroquad/pull/824 makes it into a release
+        set_default_camera();
+
         let mut cam = Camera2D::default();
         cam.zoom.x = 1.0 / (screen_width() / 2.0);
         cam.zoom.y = 1.0 / (screen_height() / 2.0);

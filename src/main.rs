@@ -171,7 +171,7 @@ async fn main() {
 
         let pos = cam.screen_to_world(vec2(0.0, 0.0));
         draw_text(
-            "WASD: control crab, up/down acts on things next to crab",
+            "A: left, D: right, W/S control element at location",
             pos.x + 20.0,
             pos.y + 20.0,
             30.0,

@@ -23,7 +23,7 @@ pub struct Orbits {
     pub t: Saveable<f64>,
 }
 
-pub struct ObjectId(usize);
+pub struct ObjectId(#[allow(dead_code)] usize);
 
 const MOON_SIZE: f32 = 20.0;
 

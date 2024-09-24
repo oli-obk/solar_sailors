@@ -1,23 +1,27 @@
+use std::ops::{Add, Sub};
+
 use macroquad::prelude::*;
 
-use crate::datastructures::{Reader, Sensor};
+use crate::datastructures::{Reader, Sensor, SetGet};
 
-pub(crate) struct ControlledRange {
-    pub min: f32,
-    pub value: Sensor<f32>,
-    pub max: f32,
-    speed: f32,
+pub(crate) struct ControlledRange<T = f32> {
+    pub min: T,
+    pub value: Sensor<T>,
+    pub max: T,
+    speed: T,
 }
 
-impl ControlledRange {
-    pub fn new(min: f32, max: f32) -> (Self, Reader<f32>) {
+impl<T: SetGet<Val = T> + Add<Output = T> + Sub<Output = T> + Copy + From<f32> + PartialOrd>
+    ControlledRange<T>
+{
+    pub fn new(min: T, max: T) -> (Self, Reader<T>) {
         let (value, reader) = Sensor::new(max);
         (
             Self {
                 value,
                 min,
                 max,
-                speed: 0.1,
+                speed: T::from(0.1),
             },
             reader,
         )
@@ -32,9 +36,9 @@ impl ControlledRange {
             ..
         } = *self;
         if !dir {
-            value.modify(|v| min.max(v - speed));
+            value.modify(|v| if v - speed < min { min } else { v - speed });
         } else {
-            value.modify(|v| max.min(v + speed));
+            value.modify(|v| if v + speed > max { max } else { v + speed });
         }
     }
 }

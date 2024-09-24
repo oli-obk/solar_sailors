@@ -106,10 +106,25 @@ impl Player {
 
     pub fn update(&mut self, grid: &mut HashMap<hex2d::Coordinate, Segment>) {
         let attachement = self.attachement(grid).is_some();
-        let next_action = match (is_key_down(KeyCode::S), is_key_down(KeyCode::W)) {
+
+        let mut left = is_key_down(KeyCode::A);
+        let mut right = is_key_down(KeyCode::D);
+        let mut down = is_key_down(KeyCode::S);
+        let mut up = is_key_down(KeyCode::W);
+
+        for touch in touches_local() {
+            match (touch.position.x > 0., touch.position.y > 0.) {
+                (true, true) => down = true,
+                (true, false) => up = true,
+                (false, true) => right = true,
+                (false, false) => left = true,
+            }
+        }
+
+        let next_action = match (down, up) {
             (true, false) if attachement => Some(Action::Use { up: false }),
             (false, true) if attachement => Some(Action::Use { up: true }),
-            _ => match (is_key_down(KeyCode::A), is_key_down(KeyCode::D)) {
+            _ => match (left, right) {
                 (true, true) => Some(Action::Sleep),
                 (false, true) => Some(Action::Walk { right: true }),
                 (true, false) => Some(Action::Walk { right: false }),

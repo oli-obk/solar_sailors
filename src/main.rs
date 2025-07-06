@@ -1,5 +1,6 @@
 use std::{
     collections::HashMap,
+    convert::{TryFrom as _, TryInto as _},
     f32::consts::{FRAC_PI_2, FRAC_PI_3, PI},
     sync::{Arc, Mutex},
 };
@@ -26,6 +27,8 @@ mod save;
 mod ship;
 mod stars;
 
+use orbital::typed_floats::{NonNaNFinite, StrictlyPositiveFinite};
+
 fn window_conf() -> Conf {
     Conf {
         window_title: "Solar Sailors".to_owned(),
@@ -45,18 +48,27 @@ async fn main() {
         small_zoom: 1.0,
     };
     let mut orbits = orbits::Orbits::load();
-    orbits.insert(0.0, orbital::Orbit::circular(200.0), 0.0);
+    orbits.insert(
+        NonNaNFinite::<f64>::try_from(0.0).unwrap(),
+        orbital::Orbit::circular(200.0_f64.try_into().unwrap()),
+        0.0.try_into().unwrap(),
+    );
     // Find a parabolic orbit
-    let mut dy = 0.141;
+    let mut dy = 0.141.try_into().unwrap();
     loop {
-        let (orbit, angle, t) = orbital::Orbit::from_pos_dir(100.0, 0.0, 0.0, dy);
-        let diff = 1.0 - orbit.epsilon;
-        let diff = diff * 0.01;
+        let (orbit, angle, t) = orbital::Orbit::from_pos_dir(
+            100.0.try_into().unwrap(),
+            0.0.try_into().unwrap(),
+            0.0.try_into().unwrap(),
+            dy,
+        );
+        let diff = StrictlyPositiveFinite::<f64>::try_from(1.0).unwrap() - orbit.epsilon;
+        let diff = diff * StrictlyPositiveFinite::<f64>::try_from(0.01).unwrap();
         if diff.abs() < 1e-6 {
             orbits.insert(angle, orbit, t);
             break;
         }
-        dy += diff;
+        dy += NonNaNFinite::try_from(diff).unwrap();
     }
 
     let sail_width = 100.0;

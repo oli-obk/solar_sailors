@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 tracing = "0.1.26"
+typed_floats = "1.0.6"

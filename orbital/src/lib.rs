@@ -48,10 +48,6 @@ impl Orbit {
     /// The third return value is the starting time of the object in the orbit.
     #[instrument(level = "debug")]
     pub fn from_pos_dir(x: f64, y: f64, dx: f64, dy: f64) -> (Self, f64, f64) {
-        let x = x as f64;
-        let y = y as f64;
-        let dx = dx as f64;
-        let dy = dy as f64;
         let r_squared = x * x + y * y;
         let r = r_squared.sqrt();
         let phi = y.atan2(x);

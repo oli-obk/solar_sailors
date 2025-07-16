@@ -10,13 +10,13 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - run: docker run --rm -v $(pwd)":/root/src" -w /root/src notfl3/cargo-apk sh android.sh
       - run: mkdir dist
       - run: cp target/android-artifacts/release/apk/solar_sailors.apk dist/solar_sailors.apk
 
-      - uses: peaceiris/actions-gh-pages@v3
+      - uses: peaceiris/actions-gh-pages@v4
         if: github.ref == 'refs/heads/main'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

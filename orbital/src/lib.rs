@@ -10,6 +10,7 @@ use typed_floats::{
 };
 
 pub use typed_floats;
+pub mod orbits;
 
 #[derive(Debug)]
 pub struct Orbit {

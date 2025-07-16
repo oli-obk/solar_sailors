@@ -1,8 +1,5 @@
 use macroquad::prelude::*;
-use orbital::{
-    orbits::ObjectId,
-    typed_floats::{NonNaNFinite, PositiveFinite},
-};
+use orbital::orbits::{Object, ObjectId};
 
 use crate::save::Saveable;
 
@@ -20,13 +17,8 @@ impl Orbits {
             t: Saveable::default("time"),
         }
     }
-    pub fn insert(
-        &mut self,
-        angle: NonNaNFinite,
-        orbit: orbital::Orbit,
-        t: PositiveFinite,
-    ) -> ObjectId {
-        self.orbits.insert(angle, orbit, t)
+    pub fn insert(&mut self, object: Object) -> ObjectId {
+        self.orbits.insert(object)
     }
     pub fn update(&mut self) {
         self.t += 10.0;

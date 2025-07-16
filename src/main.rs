@@ -27,7 +27,10 @@ mod save;
 mod ship;
 mod stars;
 
-use orbital::typed_floats::{NonNaNFinite, StrictlyPositiveFinite};
+use orbital::{
+    orbits::Object,
+    typed_floats::{NonNaNFinite, StrictlyPositiveFinite},
+};
 
 #[cfg(target_arch = "wasm32")]
 use web_sys::*;
@@ -51,24 +54,24 @@ async fn main() {
         small_zoom: 1.0,
     };
     let mut orbits = orbits::Orbits::load();
-    orbits.insert(
-        NonNaNFinite::<f64>::try_from(0.0).unwrap(),
-        orbital::Orbit::circular(200.0_f64.try_into().unwrap()),
-        0.0.try_into().unwrap(),
-    );
+    orbits.insert(Object {
+        angle: NonNaNFinite::<f64>::try_from(0.0).unwrap(),
+        t: 0.0.try_into().unwrap(),
+        orbit: orbital::Orbit::circular(200.0_f64.try_into().unwrap()),
+    });
     // Find a parabolic orbit
     let mut dy = 0.141.try_into().unwrap();
     loop {
-        let (orbit, angle, t) = orbital::Orbit::from_pos_dir(
+        let object = orbital::Orbit::from_pos_dir(
             100.0.try_into().unwrap(),
             0.0.try_into().unwrap(),
             0.0.try_into().unwrap(),
             dy,
         );
-        let diff = StrictlyPositiveFinite::<f64>::try_from(1.0).unwrap() - orbit.epsilon;
+        let diff = StrictlyPositiveFinite::<f64>::try_from(1.0).unwrap() - object.orbit.epsilon;
         let diff = diff * StrictlyPositiveFinite::<f64>::try_from(0.01).unwrap();
         if diff.abs() < 1e-6 {
-            orbits.insert(angle, orbit, t);
+            orbits.insert(object);
             break;
         }
         dy += NonNaNFinite::try_from(diff).unwrap();

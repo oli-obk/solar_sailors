@@ -33,6 +33,8 @@ pub mod orbits;
 
 pub use orbits::Orbits;
 
+use crate::orbits::Object;
+
 #[derive(Debug)]
 pub struct Orbit {
     /// Semi-latus rectum. Basically a factor scaling the height of the ellipse.
@@ -96,12 +98,7 @@ impl Orbit {
     /// Compute orbit from position and speed. The second return value is the angle of the orbit.
     /// The third return value is the starting time of the object in the orbit.
     #[instrument(level = "debug")]
-    pub fn from_pos_dir(
-        x: NonNaN,
-        y: NonNaN,
-        dx: NonNaN,
-        dy: NonNaN,
-    ) -> (Self, NonNaNFinite, PositiveFinite) {
+    pub fn from_pos_dir(x: NonNaN, y: NonNaN, dx: NonNaN, dy: NonNaN) -> Object {
         let r_squared = StrictlyPositiveFinite::try_from(square(x) + square(y)).unwrap();
         let r = r_squared.sqrt();
         let phi = y.atan2(x);
@@ -191,7 +188,7 @@ impl Orbit {
             (PositiveFinite::try_from(m / mean_motion).unwrap(), angle)
         };
 
-        (orbit, angle, t)
+        Object { angle, t, orbit }
     }
 
     /// Radius at orbital angle `phi` in orbit coordinates, not in the coordinate system of the center of gravity.

@@ -1,3 +1,22 @@
+//! 2d orbital mechanics and convenience functionality around managing them.
+//!
+//! The core piece of this crate is the [Orbit] type. You can either create a perfectly
+//! circular orbit with [Orbit::circular], or create an orbit from a position and a velocity
+//! with [Orbit::from_pos_dir].
+//!
+//! If you want to manage an object (or multiple) that are in various orbits around the same center of mass,
+//! you can use [Orbits] to manage them.
+//!
+//! ## Precision and extreme situations
+//!
+//! This crate heavily uses the [typed_floats] crate to avoid encountering NaNs and infinities
+//! where undesirable (almost always). All the float computations happen in [f64] space, so should
+//! be precise enough for almost all use cases, considering even NASA doesn't need more than a handful
+//! of digits of [PI] because all the other planets or atmosphere have too much of an influence on
+//! objects that all the nice math breaks down after a few days anyway.
+//!
+//! So yea, don't use this for anything real, but it should be precise enough for everything else.
+
 use std::convert::TryFrom as _;
 use tracing::*;
 use typed_floats::{
@@ -11,6 +30,8 @@ use typed_floats::{
 
 pub use typed_floats;
 pub mod orbits;
+
+pub use orbits::Orbits;
 
 #[derive(Debug)]
 pub struct Orbit {

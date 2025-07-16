@@ -29,6 +29,9 @@ mod stars;
 
 use orbital::typed_floats::{NonNaNFinite, StrictlyPositiveFinite};
 
+#[cfg(target_arch = "wasm32")]
+use web_sys::*;
+
 fn window_conf() -> Conf {
     Conf {
         window_title: "Solar Sailors".to_owned(),

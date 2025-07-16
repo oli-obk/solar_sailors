@@ -14,6 +14,7 @@ tracing = "0.1.26"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 quad-storage-sys = "0.1.0"
+web-sys = "0.3.77"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 directories = "5"

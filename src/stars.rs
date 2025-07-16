@@ -92,7 +92,7 @@ impl Stars {
                 photon.pos.x + photon.dir.x * LENGTH / SPEED,
                 photon.pos.y + photon.dir.y * LENGTH / SPEED,
                 1.0,
-                GOLD,
+                GOLD.with_alpha(0.2),
             );
         }
     }

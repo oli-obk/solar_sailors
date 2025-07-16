@@ -308,7 +308,7 @@ impl Orbit {
     }
 
     /// The angle of the object after `time` seconds, when starting at angle `0`
-    pub fn angle_at(&self, time: PositiveFinite) -> PositiveFinite {
+    pub fn angle_at(&self, time: PositiveFinite) -> NonNaNFinite {
         match self.kind() {
             OrbitKind::Circle => {
                 let mean_motion = self.mean_motion();
@@ -316,19 +316,19 @@ impl Orbit {
                 // math below.
                 let period = TAU / mean_motion;
                 let time = PositiveFinite::try_from(time % period).unwrap();
-                PositiveFinite::try_from(TAU * time / period).unwrap()
+                NonNaNFinite::try_from(TAU * time / period).unwrap()
             }
             OrbitKind::Ellipse => {
                 let e = self.eccentric_anomaly(time);
                 let x = e.cos() - self.epsilon;
                 let y = e.sin() * self.eps_squared().sqrt();
-                PositiveFinite::try_from(y.atan2(x)).unwrap()
+                y.atan2(x)
             }
             OrbitKind::Parabola => {
                 let e = self.eccentric_anomaly(time);
                 let u2 = e * e;
                 let cosv = NonNaNFinite::try_from((ONE - u2) / (ONE + u2)).unwrap();
-                PositiveFinite::try_from(cosv.acos()).unwrap()
+                NonNaNFinite::try_from(cosv.acos()).unwrap()
             }
             OrbitKind::Hyperbola => {
                 let e = self.eccentric_anomaly(time);
@@ -340,10 +340,8 @@ impl Orbit {
                         / (PositiveFinite::try_from(self.epsilon * cosh).unwrap() - ONE),
                 )
                 .unwrap();
-                PositiveFinite::try_from(
-                    NonNaNFinite::try_from(cosv.acos()).unwrap() * time.signum(),
-                )
-                .unwrap()
+                NonNaNFinite::try_from(NonNaNFinite::try_from(cosv.acos()).unwrap() * time.signum())
+                    .unwrap()
             }
         }
     }

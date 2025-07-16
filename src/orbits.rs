@@ -64,7 +64,7 @@ impl Orbits {
                 )
                 .unwrap(),
             );
-            let radius = object.orbit.orbit.r(angle.into());
+            let radius = object.orbit.orbit.r(angle);
             let system_angle = f64::from(angle + object.orbit.angle);
             let y = system_angle.sin();
             let x = system_angle.cos();

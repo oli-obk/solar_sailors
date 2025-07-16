@@ -1,5 +1,5 @@
 use macroquad::prelude::*;
-use orbital::orbits::{Object, ObjectId};
+use orbital::orbits::Object;
 
 use crate::save::Saveable;
 
@@ -7,6 +7,8 @@ pub struct Orbits {
     pub orbits: orbital::orbits::Orbits,
     pub t: Saveable<f64>,
 }
+
+pub struct ObjectId(#[expect(dead_code)] usize);
 
 const MOON_SIZE: f32 = 20.0;
 
@@ -18,7 +20,7 @@ impl Orbits {
         }
     }
     pub fn insert(&mut self, object: Object) -> ObjectId {
-        self.orbits.insert(object)
+        ObjectId(self.orbits.insert(object))
     }
     pub fn update(&mut self) {
         self.t += 10.0;

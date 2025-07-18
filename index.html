@@ -1,1 +1,40 @@
-<html lang=en><meta charset=utf-8><title>Solar Sailors</title><style>html,body,canvas{z-index:0;background:#000;width:100%;height:100%;margin:0;padding:0;position:absolute;overflow:hidden}</style><link as=fetch crossorigin href=/solar_sailors-6f89c2f3423350ce_bg.wasm integrity=sha384-dHsABkdberh0DhL-2DvSW2pLeUndGVbT-kVfTWCgZ_qedI54Ts9ofmAXhoywl4NL rel=preload type=application/wasm><link crossorigin href=/solar_sailors-6f89c2f3423350ce.js integrity=sha384-F8TwwRTlyEPTjOd7LVL6ZlLxw0IjZNCySskW24UWhZVsXh-SGeeyYkED7ettI6Vb rel=modulepreload></head><body><canvas id=glcanvas tabindex=1></canvas><script src=sapp_jsutils.js></script><script src=quad-storage.js></script><script>load(`solar_sailors.wasm`)</script><script type=module>import a,*as b from"/solar_sailors-6f89c2f3423350ce.js";a(`/solar_sailors-6f89c2f3423350ce_bg.wasm`);window.wasmBindings=b</script></body></html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Solar Sailors</title>
+    <style>
+        html,
+        body,
+        canvas {
+            margin: 0px;
+            padding: 0px;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: absolute;
+            background: black;
+            z-index: 0;
+        }
+    </style>
+<link rel="modulepreload" href="/solar_sailors-1ce3b10280e7a74c.js" crossorigin="anonymous" integrity="sha384-YBOJZ9Z/n4pci2ju3uY7185RnruBRDeyRjAVqWh9srej8IUFxksERC25Cljc3q1p"><link rel="preload" href="/solar_sailors-1ce3b10280e7a74c_bg.wasm" crossorigin="anonymous" integrity="sha384-hsQcOMdLuua341v6kMCBYQ9bPzV24ZSEmTesqrGIEY1mpsEBZC6yD0zhDXB9NUqD" as="fetch" type="application/wasm"></head>
+
+<body>
+    <canvas id="glcanvas" tabindex='1'></canvas>
+    <script src="sapp_jsutils.js"></script>
+    <script src="quad-storage.js"></script>
+    <script>load("solar_sailors.wasm");</script> <!-- Your compiled wasm file -->
+
+<script type="module">
+import init, * as bindings from '/solar_sailors-1ce3b10280e7a74c.js';
+const wasm = await init({ module_or_path: '/solar_sailors-1ce3b10280e7a74c_bg.wasm' });
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script></body>
+
+</html>

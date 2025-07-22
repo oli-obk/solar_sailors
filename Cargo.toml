@@ -9,7 +9,7 @@ edition = "2018"
 [dependencies]
 hex2d = { version = "1.1.0", default-features = false }
 macroquad = { version = "0.4.14", features = ["log-rs"] }
-orbital = { path = "orbital", version = "0.1" }
+orbits = { path = "orbits", version = "0.1" }
 tracing = "0.1.26"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]

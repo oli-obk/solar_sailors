@@ -1,10 +1,10 @@
+pub use ::orbits::*;
 use macroquad::prelude::*;
-use orbital::orbits::Object;
 
 use crate::save::Saveable;
 
 pub struct Orbits {
-    pub orbits: orbital::orbits::Orbits,
+    pub orbits: orbits::Orbits,
     pub t: Saveable<f64>,
 }
 
@@ -19,7 +19,7 @@ impl Orbits {
             t: Saveable::default("time"),
         }
     }
-    pub fn insert(&mut self, object: Object) -> ObjectId {
+    pub fn insert(&mut self, object: orbits::Object) -> ObjectId {
         ObjectId(self.orbits.insert(object))
     }
     pub fn update(&mut self) {
@@ -37,10 +37,10 @@ impl Orbits {
             draw_triangle(pos, pos + left, pos + right, GREEN);
 
             let color = match kind {
-                orbital::OrbitKind::Circle => WHITE,
-                orbital::OrbitKind::Ellipse => GRAY,
-                orbital::OrbitKind::Parabola => GREEN,
-                orbital::OrbitKind::Hyperbola => RED,
+                OrbitKind::Circle => WHITE,
+                OrbitKind::Ellipse => GRAY,
+                OrbitKind::Parabola => GREEN,
+                OrbitKind::Hyperbola => RED,
             };
 
             let (mut x, mut y) = points.next().unwrap();

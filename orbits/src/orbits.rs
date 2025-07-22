@@ -1,6 +1,6 @@
 use std::{collections::HashMap, convert::TryFrom as _, f64::consts::TAU};
 
-use typed_floats::{NonNaNFinite, PositiveFinite};
+use typed_floats::{NonNaN, NonNaNFinite, PositiveFinite};
 
 use crate::{Orbit, OrbitKind};
 
@@ -11,6 +11,18 @@ pub struct Object {
     pub t: PositiveFinite,
     /// raw orbit information.
     pub orbit: Orbit,
+}
+
+impl Object {
+    pub fn angle_at(&self, t: f64) -> NonNaNFinite {
+        self.orbit.angle_at(
+            PositiveFinite::try_from(PositiveFinite::try_from(t).unwrap() + self.t).unwrap(),
+        )
+    }
+
+    pub fn r(&self, angle: NonNaNFinite) -> NonNaN {
+        self.orbit.r(angle)
+    }
 }
 
 #[derive(Default)]
@@ -25,7 +37,7 @@ impl Orbits {
     pub fn insert(&mut self, object: Object) -> usize {
         let id = self.next_id;
         self.next_id += 1;
-        self.sparse.insert(self.objects.len(), id);
+        self.sparse.insert(id, self.objects.len());
         self.objects.push(object);
         id
     }
@@ -55,10 +67,8 @@ impl Orbits {
     ) -> impl Iterator<Item = (OrbitKind, (f32, f32), impl Iterator<Item = (f32, f32)> + '_)> + '_
     {
         self.objects.iter().map(move |object| {
-            let angle = object.orbit.angle_at(
-                PositiveFinite::try_from(PositiveFinite::try_from(t).unwrap() + object.t).unwrap(),
-            );
-            let radius = object.orbit.r(angle);
+            let angle = object.angle_at(t);
+            let radius = object.r(angle);
             let system_angle = f64::from(angle + object.angle);
             let y = system_angle.sin();
             let x = system_angle.cos();

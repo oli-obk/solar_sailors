@@ -27,9 +27,10 @@ mod save;
 mod ship;
 mod stars;
 
-use orbital::{
+use orbits::{
     orbits::Object,
     typed_floats::{NonNaNFinite, StrictlyPositiveFinite},
+    Orbit,
 };
 
 #[cfg(target_arch = "wasm32")]
@@ -57,12 +58,12 @@ async fn main() {
     orbits.insert(Object {
         angle: NonNaNFinite::<f64>::try_from(0.0).unwrap(),
         t: 0.0.try_into().unwrap(),
-        orbit: orbital::Orbit::circular(200.0_f64.try_into().unwrap()),
+        orbit: Orbit::circular(200.0_f64.try_into().unwrap()),
     });
     // Find a parabolic orbit
     let mut dy = 0.141.try_into().unwrap();
     loop {
-        let object = orbital::Orbit::from_pos_dir(
+        let object = Orbit::from_pos_dir(
             100.0.try_into().unwrap(),
             0.0.try_into().unwrap(),
             0.0.try_into().unwrap(),

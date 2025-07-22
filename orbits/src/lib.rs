@@ -47,7 +47,7 @@ pub struct Orbit {
     pub epsilon: PositiveFinite,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum OrbitKind {
     Circle,
     Ellipse,
@@ -114,14 +114,12 @@ impl Orbit {
         let one_neg_e_squared = rvs / a;
         let e_squared = StrictlyPositiveFinite::try_from(ONE - one_neg_e_squared).unwrap();
         let e = e_squared.sqrt();
-        let cos_angle = StrictlyPositiveFinite::try_from((rvs / r - ONE) / e).unwrap();
+        let cos_angle = NonNaNFinite::try_from((rvs / r - ONE) / e).unwrap();
         trace!(?cos_angle);
         // Truncate precision to f32 to make sure we never get above 1.0 even with some float math issues
-        let angle = StrictlyPositiveFinite::<f64>::new(f64::from(cos_angle) as f32 as f64)
-            .unwrap()
-            .acos();
-        assert!(angle.abs() <= 1.0);
-        let angle = PositiveFinite::try_from(angle).unwrap();
+        let angle = NonNaNFinite::<f64>::new(f64::from(cos_angle) as f32 as f64).unwrap();
+        assert!(angle.abs() <= 1.0, "{} > 1.0", angle.abs());
+        let angle = PositiveFinite::try_from(angle.acos()).unwrap();
         let angles = [
             NonNaNFinite::try_from(phi - angle).unwrap(),
             NonNaNFinite::try_from(phi + angle).unwrap(),
@@ -140,14 +138,6 @@ impl Orbit {
             p,
             epsilon: e.into(),
         };
-        for &angle in &angles {
-            assert!(
-                (orbit.r(angle) - r).abs() < 1e-5,
-                "{} - {}",
-                orbit.r(angle),
-                r
-            );
-        }
         let (t, angle) = if let OrbitKind::Circle = kind {
             // Circle
             (ZERO.into(), phi)
@@ -172,12 +162,13 @@ impl Orbit {
             // 9.8.1
             let cos_big_e = (e + cos_angle) / (rvs / r);
             // Truncate precision to f32 to make sure we never get above 1.0 even with some float math issues
-            let big_e = NonNaNFinite::try_from(
-                StrictlyPositiveFinite::try_from((f64::from(cos_big_e) as f32) as f64)
-                    .unwrap()
-                    .acos(),
-            )
-            .unwrap();
+            let cos_big_e = NonNaNFinite::try_from((f64::from(cos_big_e) as f32) as f64).unwrap();
+            assert!(
+                cos_big_e.abs() <= 1.0,
+                "{} > 1.0 ({kind:?})",
+                cos_big_e.abs()
+            );
+            let big_e = NonNaNFinite::try_from(cos_big_e.acos()).unwrap();
             let big_e = if angle < PI {
                 big_e
             } else {
@@ -187,8 +178,17 @@ impl Orbit {
             let mean_motion = orbit.mean_motion();
             (PositiveFinite::try_from(m / mean_motion).unwrap(), angle)
         };
+        let obj = Object { angle, t, orbit };
 
-        Object { angle, t, orbit }
+        let actual_r = obj.r(obj.angle_at(0.0));
+        if (actual_r - r).abs() > 1e-3 {
+            panic!(
+                "{kind:?}: {actual_r} should be {r}, diff: {}",
+                (actual_r - r).abs()
+            );
+        }
+
+        obj
     }
 
     /// Radius at orbital angle `phi` in orbit coordinates, not in the coordinate system of the center of gravity.

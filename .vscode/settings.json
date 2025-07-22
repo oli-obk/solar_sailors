@@ -1,4 +1,8 @@
 {
     "cSpell.enabled": false,
-    "nixEnvSelector.nixFile": "${workspaceRoot}/shell.nix"
+    "nixEnvSelector.nixFile": "${workspaceRoot}/shell.nix",
+    "rust-analyzer.linkedProjects": [
+        "./Cargo.toml",
+        "./orbits/Cargo.toml",
+    ]
 }

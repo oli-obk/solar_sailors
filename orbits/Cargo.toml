@@ -1,5 +1,5 @@
 [package]
-name = "orbital"
+name = "orbits"
 version = "0.1.0"
 authors = ["Oli Scherer <github35764891676564198441@oli-obk.de>"]
 edition = "2018"
@@ -11,5 +11,4 @@ tracing = "0.1.26"
 typed_floats = "1.0.6"
 
 [dev-dependencies]
-
 macroquad = { version = "0.4.14" }
